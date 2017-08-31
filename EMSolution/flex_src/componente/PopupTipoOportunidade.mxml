@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<util:ModuleTitleWindow title="Oportunidade de Serviço" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:util="util.*" layout="absolute" width="960" height="540">
+	
+	<mx:Script>
+		<![CDATA[
+			import bean.PropostaBean;
+			import bean.TipoOportunidadeBean;
+			import bean.UsuarioBean;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.core.IFlexDisplayObject;
+			import mx.events.CloseEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			
+			import util.ProgressBarHelper;
+			public var isConfirmar:Boolean = false;
+			public var isRemover:Boolean = false;
+			public var isNovaProposta:Boolean = false;
+			private var urlLogin:String;
+			private var numSerie:String;
+			private var modelo:String;
+			private var filial:String;
+			public var proposta:PropostaBean = new PropostaBean();
+			private var detalhesProposta:PopupImprimirProposta;
+			private var imprimirRecomendacao:PopupImprimirRecomendacao;
+			private var areaResponsavel:PopupEnviarAreaResponsavel;
+			private var usuarioBean:UsuarioBean;
+			public function init(urlLogin:String, numSerie:String, modelo:String, usuarioBean:UsuarioBean, filial:String):void{
+				this.usuarioBean = usuarioBean;
+				this.numSerie = numSerie;
+				this.modelo = modelo;
+				this.urlLogin = urlLogin;
+				this.filial = filial;
+				serviceController.findAllTipoOportunidade();
+				gridProposta.addEventListener("IMPRIMIRPROPOSTA", popupImprimirProposta);
+				gridProposta.addEventListener("AREARESPONSAVEL", popupAreaResponsavel);
+				gridProposta.addEventListener("REMOVERPROPOSTA", removerProposta);
+				gridProposta.addEventListener("CLONARPROPOSTA", clonarProposta);
+			}
+			
+			private function popupImprimirProposta(event:Event):void{
+				if(PropostaBean(gridProposta.selectedItem).siglaTipoOprtunidade == 'CRM'){
+					detalhesProposta = new PopupImprimirProposta();
+					detalhesProposta.addEventListener(CloseEvent.CLOSE, removerPopUpImprimirProposta);
+					PopUpManager.addPopUp(detalhesProposta, this, true);
+					PopUpManager.centerPopUp(detalhesProposta);
+					detalhesProposta.init(urlLogin, PropostaBean(gridProposta.selectedItem));
+				}else if(PropostaBean(gridProposta.selectedItem).siglaTipoOprtunidade == 'RECCON'){
+					imprimirRecomendacao = new PopupImprimirRecomendacao();
+					imprimirRecomendacao.addEventListener(CloseEvent.CLOSE, removerPopUpImprimirRecomendaca);
+					PopUpManager.addPopUp(imprimirRecomendacao, this, true);
+					PopUpManager.centerPopUp(imprimirRecomendacao);
+					imprimirRecomendacao.init(urlLogin, PropostaBean(gridProposta.selectedItem));
+				}
+			}
+			private function removerPopUpImprimirProposta(obj:CloseEvent):void{
+				PopUpManager.removePopUp(obj.currentTarget as IFlexDisplayObject);
+				if(detalhesProposta.print == true){
+					this.gerarRelatorio();
+				}
+			}
+			private function removerPopUpImprimirRecomendaca(obj:CloseEvent):void{
+				PopUpManager.removePopUp(obj.currentTarget as IFlexDisplayObject);
+				if(imprimirRecomendacao.print == true){
+					this.gerarRecomendacao();
+				}
+			}
+			private function popupAreaResponsavel(event:Event):void{
+				if(PropostaBean(gridProposta.selectedItem).siglaStatusOprtunidade != 'EA' && PropostaBean(gridProposta.selectedItem).siglaStatusOprtunidade != 'REJ'){
+					Alert.show("Só é permitido enviar uma oportunidade ou recomendação em status de EM ATENDIMENTO ou REJEITADA!", "Aletra");
+					return;
+				}
+				if(PropostaBean(gridProposta.selectedItem).idFuncionarioLock != null && PropostaBean(gridProposta.selectedItem).idFuncionarioLock != this.usuarioBean.estimateBy){
+					Alert.show("A proposta está locada pata outro funcionário, apenas ele pode enviar para o CRM!", "Aletra");
+					return;
+				}
+				areaResponsavel = new PopupEnviarAreaResponsavel();
+				areaResponsavel.addEventListener(CloseEvent.CLOSE, removerPopUpAreResponsavel);
+				PopUpManager.addPopUp(areaResponsavel, this, true);
+				PopUpManager.centerPopUp(areaResponsavel);
+				areaResponsavel.init(urlLogin, PropostaBean(gridProposta.selectedItem));	
+			}
+			private function removerPopUpAreResponsavel(obj:CloseEvent):void{
+				PopUpManager.removePopUp(obj.currentTarget as IFlexDisplayObject);
+				//serviceController.findAllProposta(this.numSerie);
+				this.close(null);
+			}
+			private var clonarProp:PopupClonarMaquinaSMU;
+			private function clonarProposta(event:Event):void{
+				serviceController.validarSerieMotorTransmissao(this.numSerie, PropostaBean(gridProposta.selectedItem).id);
+					
+			}
+			private function removerPopUpClonarMaquinaSMU(obj:CloseEvent):void{
+				PopUpManager.removePopUp(obj.currentTarget as IFlexDisplayObject);
+				serviceController.findAllProposta(this.numSerie);
+			}
+			
+			private function gerarRelatorio():void{
+				var uv:URLVariables = new URLVariables();
+				uv.idProposta = PropostaBean(gridProposta.selectedItem).id;
+				uv.codCliente = PropostaBean(gridProposta.selectedItem).codigoCiente;
+				uv.imprimirComPecas = ((detalhesProposta.imprimirComPecas.selected)?'S':'N');
+				uv.orcamentista = detalhesProposta.orcamentista.text;
+				var url:URLRequest = new URLRequest("ImprimirProposta");
+				url.method = "POST";
+				url.data = uv;
+				navigateToURL(url,"_blank");
+				
+			}
+			private function gerarRecomendacao():void{
+				var uv:URLVariables = new URLVariables();
+				uv.idProposta = PropostaBean(gridProposta.selectedItem).id;
+				uv.codCliente = PropostaBean(gridProposta.selectedItem).codigoCiente;
+				uv.imprimirComPecas = ((imprimirRecomendacao.imprimirComPecas.selected)?'S':'N');
+				uv.orcamentista = imprimirRecomendacao.orcamentista.text;
+				var url:URLRequest = new URLRequest("ImprimirRecomendacao");
+				url.method = "POST";
+				url.data = uv;
+				navigateToURL(url,"_blank");
+				
+			}
+			
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				if(tipoOportunidadeCbx.selectedIndex == -1){
+					Alert.show("O campo Tipo Oportunidade é obrigatório!", "Alerta");
+					return;
+				}
+				serviceController.salvarProposta(TipoOportunidadeBean(tipoOportunidadeCbx.selectedItem).id, this.numSerie, this.modelo, this.filial);
+			}
+
+
+			protected function button2_clickHandler(event:MouseEvent):void
+			{
+				isConfirmar = false;
+				this.close();
+			}
+			private function onResultFindAllTipoOportunidade(event:ResultEvent):void{
+				tipoOportunidadeCbx.dataProvider = ArrayCollection(event.result);
+				serviceController.findAllProposta(this.numSerie);
+			}
+			private function onResultFindAllProposta(event:ResultEvent):void{
+				gridProposta.dataProvider = ArrayCollection(event.result);
+			}
+			private function onResultSalvarProposta(event:ResultEvent):void{
+				if(event.result == null){
+					Alert.show("Não foi possível criar proposta, verifique se o modelo do equipamento existe no campo e na oficina, ou se a mesma não está alocada para outro funcionário!","Erro");
+					return;
+				}
+				isConfirmar = true;
+				this.proposta = PropostaBean(event.result);
+				this.close();
+			}
+
+
+			protected function datagridProposta():void
+			{
+				serviceController.alocarEquipamento(PropostaBean(gridProposta.selectedItem).id, this.numSerie);
+			}
+			private function onResultAlocarEquipamento(event:ResultEvent):void{
+				if(Boolean(event.result) == true){
+					isConfirmar = true;
+					this.proposta = PropostaBean(gridProposta.selectedItem);
+					this.close();
+				}else{
+					Alert.show("O equipamento está alocado para outro usuário!","Alerta");
+				}
+			}
+			private function onResultValidarSerieMotorTransmissao(event:ResultEvent):void{
+				if(String(event.result) == null || String(event.result) == ''){
+					clonarProp = new PopupClonarMaquinaSMU();
+					clonarProp.addEventListener(CloseEvent.CLOSE, removerPopUpClonarMaquinaSMU);
+					PopUpManager.addPopUp(clonarProp, this, true);
+					PopUpManager.centerPopUp(clonarProp);
+					clonarProp.init(urlLogin, PropostaBean(gridProposta.selectedItem).id, PropostaBean(gridProposta.selectedItem).idTipoOportunidade);
+				}else{
+					Alert.show(String(event.result),"Alerta");
+				}
+			}
+
+			protected function removerProposta(ev:Event):void
+			{
+				if(PropostaBean(gridProposta.selectedItem).siglaStatusOprtunidade != 'EA'){
+					Alert.show("Só é permitido excluir uma oportunidade ou recomendação em status de EM ATENDIMENTO!", "Aletra");
+					return;
+				}
+				serviceController.removerProposta(PropostaBean(gridProposta.selectedItem));
+			}
+			protected function onResultRemoverProposta(event:ResultEvent):void
+			{
+				if(Boolean(event.result) == true){
+					Alert.show("Proposta removida com sucesso.","Alerta");
+				}else{
+					Alert.show("Proposta removida com sucesso.","Alerta");
+				}
+				isRemover = true;
+				//serviceController.findAllProposta(this.numSerie);
+				this.close(null);
+			}
+		]]>
+	</mx:Script>
+	<mx:RemoteObject destination="service" invoke="{ProgressBarHelper.openProgressBar(this)}" id="serviceController" showBusyCursor="true" fault="{ProgressBarHelper.erro(event,urlLogin);ProgressBarHelper.removeProgressBar();}">
+		<mx:method name="findAllTipoOportunidade" result="onResultFindAllTipoOportunidade(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="salvarProposta" result="onResultSalvarProposta(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="findAllProposta" result="onResultFindAllProposta(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="alocarEquipamento" result="onResultAlocarEquipamento(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="removerProposta" result="onResultRemoverProposta(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="validarSerieMotorTransmissao" result="onResultValidarSerieMotorTransmissao(event);ProgressBarHelper.removeProgressBar()" />
+	</mx:RemoteObject>
+	<mx:HBox x="0" y="20" width="100%" horizontalAlign="center">
+		<mx:Label text="Tipo Oportunidade"/>
+		<mx:ComboBox id="tipoOportunidadeCbx" labelField="descricao" prompt="Selecione"></mx:ComboBox>
+	</mx:HBox>
+	<mx:HBox x="0" y="50" width="100%" horizontalAlign="center">
+		<mx:Button label="Confirmar" click="button1_clickHandler(event)"/>
+		<mx:Button label="Cancelar" click="button2_clickHandler(event)"/>
+	</mx:HBox>
+	<mx:DataGrid x="0" y="80" width="100%" height="100%" id="gridProposta" doubleClickEnabled="true" doubleClick="datagridProposta()">
+		<mx:columns>
+			<mx:DataGridColumn headerText="Proposta" dataField="id"/>
+			<mx:DataGridColumn headerText="Funcionário" dataField="nomeFuncionario"/>
+			<mx:DataGridColumn headerText="Data" dataField="dataOportunidade"/>
+			<mx:DataGridColumn headerText="Tipo&#13;Oportunidade" dataField="tipoOportunidade"/>
+			<mx:DataGridColumn headerText="Status&#13;Oportunidade" dataField="statusOportunidade"/>
+			<mx:DataGridColumn headerText="Observação" dataField="">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:HBox verticalGap="2" horizontalAlign="center">
+							<mx:TextArea text="{data.observacao}"/>
+						</mx:HBox>
+					</mx:Component> 	
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn headerText="Ações" dataField="">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:HBox verticalGap="2" horizontalAlign="center">
+							<mx:Script>
+								<![CDATA[
+									import bean.UsuarioBean;
+								]]>
+							</mx:Script>
+							<mx:Image source="img/send.png" width="20" buttonMode="true" height="20"  click="{dispatchEvent(new Event('AREARESPONSAVEL', true)) }" toolTip="Emcaminhar Oportunidade para área responsável."/>
+							<mx:Image source="img/pdf.png" width="15" buttonMode="true" height="15"  click="{dispatchEvent(new Event('IMPRIMIRPROPOSTA', true)) }" toolTip="Imprimir Oportunidade."/>
+							<mx:Image source="img/clone.png" width="15" buttonMode="true" height="15"  click="{dispatchEvent(new Event('CLONARPROPOSTA', true)) }" toolTip="Clonar Oportunidade."/>
+							<mx:Image source="img/remover.png" width="15" buttonMode="true" height="15" visible="{(data.isAdm == 'S')?true:false}"  click="{dispatchEvent(new Event('REMOVERPROPOSTA', true)) }" toolTip="Remover Proposta"/>
+						</mx:HBox>
+					</mx:Component> 	
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+		</mx:columns>
+	</mx:DataGrid>
+	
+</util:ModuleTitleWindow>

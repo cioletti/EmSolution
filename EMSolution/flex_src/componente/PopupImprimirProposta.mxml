@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<util:ModuleTitleWindow title="Dados da Proposta" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:util="util.*" layout="absolute" height="574" xmlns:control="br.com.thinklab.util.control.*">
+	
+	<mx:Script>
+		<![CDATA[
+			import bean.ContatoBean;
+			import bean.DetalhesPropostaBean;
+			import bean.PropostaBean;
+			import bean.SegmentoBean;
+			
+			import mx.controls.Alert;
+			import mx.controls.ProgressBar;
+			import mx.events.ListEvent;
+			import mx.events.ValidationResultEvent;
+			import mx.modules.IModuleInfo;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.object_proxy;
+			import mx.validators.Validator;
+			
+			import util.ProgressBarHelper;
+			public var urlLogin:String = "";
+			[Bindable]
+			private var dtp:DetalhesPropostaBean;
+			private var propostaBean:PropostaBean;
+			private var myValidators:Array;
+			public var print:Boolean = false;
+
+			public function init(urlLogin:String, propostaBean:PropostaBean):void{
+				this.propostaBean = propostaBean;
+				serviceController.findDetalhesProposta(propostaBean);
+				myValidators = new Array();
+				//myValidators.push(campoFormaEntregaClienteCbx);
+				myValidators.push(campoAosCuidadosTxt);
+				myValidators.push(campoTelefoneTxt);
+				myValidators.push(campoEmailTxt);
+				myValidators.push(campoObjetoProposta);
+				myValidators.push(campoMaquinaTxt);
+				myValidators.push(campoModeloTxt);
+				myValidators.push(campoSerieTxt);
+				myValidators.push(campoObservacao);
+				myValidators.push(campoCondicaoPagamento);
+				myValidators.push(campoPrazoEntregaDiasUteisTxt);
+				myValidators.push(campoValidadeProposta);
+				//myValidators.push(campoAprovacaoPropostaServico);
+				myValidators.push(campoOrcamentista);
+				myValidators.push(campoDistancia);
+			}
+			
+			public function gerarReport():void{
+				var uv:URLVariables = new URLVariables();
+				uv.aosCuidados = aosCuidadosTxt.text;
+				uv.telefone = telefoneTxt.text;
+				uv.objetoProposta = objetoProposta.text;
+				uv.maquina = maquinaTxt.text;
+				uv.modelo = modeloTxt.text;
+				uv.serie = serieTxt.text;
+				uv.observacao = observacao.text;
+				uv.condicaoPagamento = condicaoPagamento.text;
+				uv.prazoEntregaDiasUteis = prazoEntregaDiasUteisTxt.text;
+				uv.validadeProposta = validadeProposta.text;
+				uv.orcamentista = orcamentista.text;
+				uv.idProposta = propostaBean.id;
+				uv.codCliente=propostaBean.codigoCiente;
+				uv.valorReparo=valorReparo.text;
+
+				generatePDF(uv);
+			}
+			
+			private function onResultFindDetalhesProposta(ev:ResultEvent):void{
+				if(ev.result != null){
+					dtp = DetalhesPropostaBean(ev.result);
+					imprimirSubTributaria.selected = (dtp.imprimirSubTributaria == 'S')?true:false;
+					imprimirSubTributaria.selected = true;
+					fatorUrgencia.selected = (dtp.fatorUrgencia == 'S')?true:false;
+					//this.fixFormaEntregaCliente(dtp.formaEntregaProposta);
+				}
+			}
+			private function onResultVerificaPendeciasPecas(ev:ResultEvent):void{
+				if(Boolean(ev.result) == true){
+					this.imprimirProposta();
+				} else {
+					Alert.show("Não foi possível gerar a proposta, pois existe pendências de peças em algum segmento!", "Alerta");
+					ProgressBarHelper.removeProgressBar();
+				}
+			}
+			private function onResultSaveOrUpdateDetalhesProposta(ev:ResultEvent):void{
+				if(ev.result != null){
+					dtp = DetalhesPropostaBean(ev.result);
+					if(dtp.isFindSubTributaria != 'P'){
+						print = true;
+						//this.gerarReport();
+					}else{
+						Alert.show("Aguarde o retorno do valor da substituição tributária das peças, para imprimir a proposta!", "Alerta");
+					}
+					this.close();
+					return;
+				}
+					Alert.show("Não foi possível salvar dados da Proposta!","Erro");
+			}
+			
+			private var urlReport:String = "";
+			public function generatePDF(uv:URLVariables):void
+			{				
+				var url:URLRequest = new URLRequest(urlReport+"/EMSolution");
+				url.method = "GET";
+				url.data = uv;
+				navigateToURL(url,"_blank");
+			}
+			
+/*   			private function fixFormaEntregaCliente(forma:String):void{
+				formaEntregaClienteCbx.selectedIndex = -1;
+				var fcList:ArrayCollection = ArrayCollection(formaEntregaClienteCbx.dataProvider);
+				for(var i:int=0; i < fcList.length; i++){
+					var fc:String = String(fcList.getItemAt(i).data);
+					if(fc == forma){
+						formaEntregaClienteCbx.selectedIndex = i;
+						break;
+					}
+				}
+			}   */
+			
+
+			protected function segmentoCbx_changeHandler(event:ListEvent):void
+			{
+				obsSegmento.editable = false;
+				if(segmentoCbx.selectedIndex != -1){
+					obsSegmento.editable = true;
+					obsSegmento.text = SegmentoBean(segmentoCbx.selectedItem).observacao;
+				}
+			}
+
+
+			protected function obsSegmento_changeHandler(event:Event):void
+			{
+				if(segmentoCbx.selectedIndex != -1){
+					SegmentoBean(segmentoCbx.selectedItem).observacao = obsSegmento.text;
+				}
+			}
+			
+			
+			private function imprimirProposta():void{
+				var validatorErrorArray:Array = Validator.validateAll(myValidators);;
+				var isValidForm:Boolean = validatorErrorArray.length == 0;
+				
+				if (isValidForm) {
+					//dtp.formaEntregaProposta = formaEntregaClienteCbx.selectedItem.data;
+					dtp.aosCuidados = aosCuidadosTxt.text;
+					dtp.telefone = telefoneTxt.text
+					dtp.email = emailTxt.text
+					dtp.objetoProposta = objetoProposta.text;
+					dtp.maquina = maquinaTxt.text;
+					dtp.modelo = modeloTxt.text;
+					dtp.serie = serieTxt.text;
+					dtp.observacao = observacao.text;
+					dtp.condicaoPagamento = condicaoPagamento.text;
+					dtp.prazoEntrega = Number(prazoEntregaDiasUteisTxt.text);
+					dtp.validadeProposta = validadeProposta.text;
+					//dtp.aprovacaoPropostaServico = aprovacaoPropostaServico.text;
+					dtp.orcamentista = orcamentista.text;
+					dtp.imprimirSubTributaria = (imprimirSubTributaria.selected == true)?'S':'N';
+					dtp.fatorUrgencia = (fatorUrgencia.selected == true)?'S':'N';
+					dtp.contato = contatoTxt.text;
+					dtp.valorReparoAposFalha = valorReparo.text;
+					dtp.distancia = Number(distanciaTxt.text);
+					serviceController.saveOrUpdateDetalhesProposta(this.propostaBean.id, dtp);
+				}else {
+					var err:ValidationResultEvent;
+					var errorMessageArray:Array = [];
+					for each (err in validatorErrorArray) {
+						var errField:String = FormItem(err.currentTarget.source.parent).label
+						errorMessageArray.push(errField + ": Este campo é obrigatório.");
+					}
+					Alert.show(errorMessageArray.join("\n\n"), "Erro", Alert.OK);
+					ProgressBarHelper.removeProgressBar();
+				}
+			}
+			
+			public function verificaPendeciasPecas():void{
+				serviceController.verificaPendeciasPecas(this.propostaBean.id);
+			}
+
+		]]>
+	</mx:Script>
+	
+	<!--mx:NumberValidator id="campoFormaEntregaClienteCbx" source="{formaEntregaClienteCbx}" lowerThanMinError="Este campo  obrigatório." property="selectedIndex" minValue="0" /-->
+	<mx:StringValidator id="campoAosCuidadosTxt" requiredFieldError="Este campo  obrigatório!" required="true" source="{aosCuidadosTxt}" property="text" />
+	<mx:StringValidator id="campoTelefoneTxt" requiredFieldError="Este campo  obrigatório!" required="true" source="{telefoneTxt}" property="text" />
+	<mx:StringValidator id="campoEmailTxt" requiredFieldError="Este campo  obrigatório!" required="true" source="{emailTxt}" property="text" />
+	<mx:StringValidator id="campoObjetoProposta" requiredFieldError="Este campo  obrigatório!" required="true" source="{objetoProposta}" property="text" />
+	<mx:StringValidator id="campoMaquinaTxt" requiredFieldError="Este campo  obrigatório!" required="true" source="{maquinaTxt}" property="text" />
+	<mx:StringValidator id="campoModeloTxt" requiredFieldError="Este campo  obrigatório!" required="true" source="{modeloTxt}" property="text" />
+	<mx:StringValidator id="campoSerieTxt" requiredFieldError="Este campo  obrigatório!" required="true" source="{serieTxt}" property="text" />
+	<mx:StringValidator id="campoObservacao" requiredFieldError="Este campo  obrigatório!" required="true" source="{observacao}" property="text" />
+	<mx:StringValidator id="campoCondicaoPagamento" requiredFieldError="Este campo  obrigatório!" required="true" source="{condicaoPagamento}" property="text" />
+	<mx:StringValidator id="campoPrazoEntregaDiasUteisTxt" requiredFieldError="Este campo  obrigatório!" required="true" source="{prazoEntregaDiasUteisTxt}" property="text" />
+	<mx:StringValidator id="campoValidadeProposta" requiredFieldError="Este campo  obrigatório!" required="true" source="{validadeProposta}" property="text" />
+	<!--mx:StringValidator id="campoAprovacaoPropostaServico" requiredFieldError="Este campo  obrigatório!" required="true" source="{aprovacaoPropostaServico}" property="text" /-->
+	<mx:StringValidator id="campoOrcamentista" requiredFieldError="Este campo  obrigatório!" required="true" source="{orcamentista}" property="text" />
+	<mx:StringValidator id="campoDistancia" requiredFieldError="Este campo  obrigatório!" required="true" source="{distanciaTxt}" property="text" />
+	
+	<mx:RemoteObject destination="service" invoke="{ProgressBarHelper.openProgressBar(this)}" id="serviceController" showBusyCursor="true" fault="ProgressBarHelper.erro(event,urlLogin);ProgressBarHelper.removeProgressBar()">
+		<mx:method name="findDetalhesProposta" result="onResultFindDetalhesProposta(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="saveOrUpdateDetalhesProposta" result="onResultSaveOrUpdateDetalhesProposta(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="verificaPendeciasPecas" result="onResultVerificaPendeciasPecas(event)" />
+	</mx:RemoteObject>
+	<mx:ArrayCollection id="tipoEntregaCbx">
+		<mx:Object label="E-MAIL" data="E"/>
+		<mx:Object label="EM MÃOS" data="M"/>
+		<mx:Object label="VIA FAX" data="F"/>
+	</mx:ArrayCollection>
+	<mx:Button x="308" y="484" label="Imprimir Proposta" click="verificaPendeciasPecas()"/>
+	<mx:HBox width="100%" x="0" y="0">
+		<mx:Form height="440">
+			<!--mx:FormItem label="Entregue ao cliente Por" required="true">
+				<mx:ComboBox dataProvider="{tipoEntregaCbx}" prompt="Selecione" id="formaEntregaClienteCbx" labelField="label"></mx:ComboBox>
+			</mx:FormItem-->
+			<mx:FormItem label="Aos Cuidados" required="true">
+				<mx:TextInput id="aosCuidadosTxt" text="{dtp.aosCuidados}" maxChars="100"/>
+			</mx:FormItem>
+			<mx:FormItem label="Contato" required="true">
+				<mx:TextInput id="contatoTxt" text="{dtp.contato}" maxChars="255"/>
+			</mx:FormItem>
+			<mx:FormItem label="Telefone" required="true">
+				<mx:TextInput id="telefoneTxt" text="{dtp.telefone}" maxChars="20"/>
+			</mx:FormItem>
+			<mx:FormItem label="E-mail" required="true">
+				<mx:TextInput id="emailTxt" text="{dtp.email}" maxChars="100"/>
+			</mx:FormItem>
+			<mx:FormItem label="Objeto da Proposta" required="true">
+				<mx:TextInput id="objetoProposta" text="{dtp.objetoProposta}" maxChars="255"/>
+			</mx:FormItem>
+			<mx:FormItem label="Máquina" required="true">
+				<mx:TextInput id="maquinaTxt" text="{dtp.maquina}" maxChars="50"/>
+			</mx:FormItem>
+			<mx:FormItem label="Modelo" required="true">
+				<mx:TextInput id="modeloTxt" text="{dtp.modelo}" editable="false" maxChars="30"/>
+			</mx:FormItem>
+			<mx:FormItem label="Série" required="true">
+				<mx:TextInput id="serieTxt" text="{dtp.serie}" editable="false" maxChars="20"/>
+			</mx:FormItem>
+			<mx:FormItem label="Segmento">
+				<mx:ComboBox id="segmentoCbx" dataProvider="{dtp.segmentoList}" prompt="Selecione" labelField="descricao" change="segmentoCbx_changeHandler(event)"></mx:ComboBox>
+			</mx:FormItem>
+			<mx:FormItem label="Observação Segmento" height="149" required="true" width="100%">
+				<mx:TextArea height="139" width="100%" id="obsSegmento" editable="false" change="obsSegmento_changeHandler(event)"/>
+			</mx:FormItem>
+		</mx:Form>
+		<mx:Form>
+			<mx:FormItem label="Observações" height="155" required="true">
+				<mx:TextArea height="140" id="observacao" text="{dtp.observacao}"/>
+			</mx:FormItem>
+			<mx:FormItem label="Condições de pagamento" required="true">
+				<mx:TextInput id="condicaoPagamento" text="{dtp.condicaoPagamento}" />
+			</mx:FormItem>
+			<mx:FormItem label="Prazo entrega em dias úteis" required="true">
+				<mx:TextInput id="prazoEntregaDiasUteisTxt" text="{dtp.prazoEntrega}" restrict="[0-9]"/>
+			</mx:FormItem>
+			<mx:FormItem label="Validade da Proposta" required="true">
+				<mx:DateField id="validadeProposta" text="{((dtp.validadeProposta != null)?dtp.validadeProposta:'')}" formatString="DD/MM/YYYY"/>
+			</mx:FormItem>
+			<!--mx:FormItem label="Aprovação da Proposta de Serviço" height="135" required="true">
+				<mx:TextArea height="115" id="aprovacaoPropostaServico" text="{dtp.aprovacaoPropostaServico}"/>
+			</mx:FormItem-->
+			<mx:FormItem label="Orçamentista" required="true">
+				<mx:TextInput id="orcamentista" editable="false" text="{dtp.orcamentista}"/>
+			</mx:FormItem>
+			<mx:FormItem label="Valor do Reparo Após Falha" required="true" width="282">
+				<control:DecimalInput editable="true"  id="valorReparo" width="93" text="{dtp.valorReparoAposFalha}"  precision="2" currencyFormat="br" useThousandsSeparator="true"/>
+			</mx:FormItem>
+			<mx:FormItem label="Distância" required="true">
+				<mx:TextInput id="distanciaTxt" text="{dtp.distancia}" />
+			</mx:FormItem>
+
+
+		</mx:Form>
+	</mx:HBox>
+	<mx:CheckBox x="293" y="448" id="imprimirComPecas" label="Imprimir com Peças"/>
+	<mx:CheckBox x="108" y="448" id="fatorUrgencia" label="FATOR DE URGÊNCIA" color="#FF0101" enabled="false" visible="false"/>
+	<mx:CheckBox x="458" y="448" id="imprimirSubTributaria" label="APLICAR SUBSTITUIÇÃO TRIBUTÁRIA" visible="true" color="#FD0101"/>
+	
+</util:ModuleTitleWindow>

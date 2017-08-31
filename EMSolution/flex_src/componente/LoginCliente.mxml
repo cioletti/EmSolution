@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%">
+	<mx:Script>
+		<![CDATA[
+			import bean.ConfigAlarmeBean;
+			import bean.LoginClienteBean;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.ListEvent;
+			import mx.events.ValidationResultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.validators.Validator;
+			
+			import util.ProgressBarHelper;
+			private var urlLogin:String;
+			private var myValidators: Array;
+			private var lc:LoginClienteBean = new LoginClienteBean();
+			public function init(urlLogin:String):void{
+				myValidators = new Array();
+				myValidators.push(loginCliente);				
+				this.urlLogin = urlLogin;
+				gridLoginCliente.addEventListener("REMOVERLOGINCLIENTE", removerLoginCliente);
+				serviceController.findAllLoginCliente();
+				
+			}
+			private function removerLoginCliente(ev:Event): void{
+				serviceController.removerLoginCliente(LoginClienteBean(gridLoginCliente.selectedItem));
+			}
+
+			private function onResultSaveOrUpdateLoginCliente(event:ResultEvent):void{
+				if(event.result == null){
+					Alert.show("Erro ao tentar salvar configuração de alarme!","Alerta");
+					return;
+				}
+				Alert.show("Salvo com sucesso!","Alerta");
+				serviceController.findAllLoginCliente();
+			}
+			private function onResultRemoverLoginCliente(event:ResultEvent):void{
+				if(event.result == false){
+					Alert.show("Erro ao tentar remover tipo de tração!","Alerta");
+					return;
+				}
+				Alert.show("Removido com sucesso!","Alerta");
+				serviceController.findAllLoginCliente();
+			}
+			
+			private function editLoginCliente():void{
+				if(gridLoginCliente.selectedItem!= null){
+					lc = LoginClienteBean(gridLoginCliente.selectedItem);
+					loginClienteText.text = lc.loginCliente;
+				
+				}
+			}
+			
+			private function salvarLoginClienteBean():void{
+				var validatorErrorArray:Array = Validator.validateAll(myValidators);;
+				var isValidForm:Boolean = validatorErrorArray.length == 0;
+				
+				if (isValidForm) {
+					lc.loginCliente = loginClienteText.text;
+					serviceController.saveOrUpdateLoginCliente(lc);		
+				}else {
+					var err:ValidationResultEvent;
+					var errorMessageArray:Array = [];
+					for each (err in validatorErrorArray) {
+						var errField:String = FormItem(err.currentTarget.source.parent).label
+						errorMessageArray.push(errField + ": Este campo é obrigatório.");
+					}
+					Alert.show(errorMessageArray.join("\n\n"), "Invalid form...", Alert.OK);
+				}
+			}
+			
+
+			protected function novo():void
+			{
+				lc = new LoginClienteBean();
+				loginClienteText.text = "";
+				//serviceController.findAllLoginCliente(lc.id);
+			}
+			
+			private function onResultFindAllLoginCliente(event:ResultEvent):void{
+				gridLoginCliente.dataProvider = ArrayCollection(event.result);
+			}
+		
+
+		]]>
+	</mx:Script>
+	<mx:StringValidator id="loginCliente" requiredFieldError="Este campo é obrigatório!" required="true" source="{loginClienteText}" property="text" />
+	<mx:RemoteObject destination="service" invoke="{ProgressBarHelper.openProgressBar(this)}" id="serviceController" showBusyCursor="true" fault="{ProgressBarHelper.erro(event,urlLogin);ProgressBarHelper.removeProgressBar();}">
+		<mx:method name="saveOrUpdateLoginCliente" result="onResultSaveOrUpdateLoginCliente(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="findAllLoginCliente" result="onResultFindAllLoginCliente(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="removerLoginCliente" result="onResultRemoverLoginCliente(event);ProgressBarHelper.removeProgressBar()" />
+	</mx:RemoteObject>
+	
+	<mx:ApplicationControlBar x="0" y="0"  width="100%" horizontalAlign="center">
+		<mx:Label text="Login Cliente" fontWeight="bold"/>
+	</mx:ApplicationControlBar>
+	<mx:DataGrid x="0" y="129" width="100%" height="100%" id="gridLoginCliente" doubleClickEnabled="true" doubleClick="editLoginCliente()">
+		<mx:columns>
+			<mx:DataGridColumn headerText="Login Cliente" dataField="loginCliente"/>
+			<mx:DataGridColumn headerText="Excluir" >
+				<mx:itemRenderer> 
+					<mx:Component>
+						<mx:VBox verticalGap="2" horizontalAlign="center">
+							<mx:Image source="img/remover.png" width="15" buttonMode="true" height="15" click="{dispatchEvent(new Event('REMOVERLOGINCLIENTE', true))}"/>
+						</mx:VBox>
+					</mx:Component> 
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:HBox x="0" y="37" width="100%" horizontalAlign="center" >
+		<mx:VBox height="100%">
+			<mx:Form> 
+				<mx:FormItem label="Login Cliente" required="true" >
+					<mx:TextInput id="loginClienteText"/>
+				</mx:FormItem>
+			</mx:Form>
+		</mx:VBox>
+	</mx:HBox>
+	<mx:HBox width="100%" x="0" y="99" horizontalAlign="center">
+		<mx:Button label="Salvar" click="salvarLoginClienteBean()"/>
+		<mx:Button label="Novo" click="novo()"/>
+	</mx:HBox>
+	
+</mx:Canvas>

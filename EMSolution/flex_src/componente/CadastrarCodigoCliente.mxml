@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%">
+	<mx:Script>
+		<![CDATA[
+			import bean.CodigoClienteBean;
+			
+			import mx.events.ListEvent;
+			
+			import bean.ConfigAlarmeBean;
+			import bean.LoginClienteBean;
+			import bean.TipoAlarmeBean;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.ValidationResultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.validators.Validator;
+			
+			import util.ProgressBarHelper;
+			private var urlLogin:String;
+			private var myValidators: Array;
+			private var codCliente:CodigoClienteBean = new CodigoClienteBean();
+			public function init(urlLogin:String):void{
+				this.urlLogin = urlLogin;
+				myValidators = new Array();
+				myValidators.push(campoLogin);
+				myValidators.push(campoCodigo);
+				serviceController.findAllLoginCliente();
+				gridCodigoCliente.addEventListener("REMOVERCONFIGALARME", removerCodigoCliente);
+				
+			}
+			private function onResultFindAllLoginCliente(event:ResultEvent): void{
+				loginClienteCbx.dataProvider = ArrayCollection(event.result);
+				
+			}
+			
+			private function onResultFindAllCodigoCliente(event:ResultEvent):void{
+				gridCodigoCliente.dataProvider = ArrayCollection(event.result);
+			}
+			
+			private function removerCodigoCliente(ev: Event): void{
+				serviceController.removerCodigoCliente(CodigoClienteBean(gridCodigoCliente.selectedItem));
+			}
+			
+			private function novo():void{
+				codCliente = new CodigoClienteBean();
+				loginClienteCbx.selectedIndex = -1;
+				codigoCliente.text = "";
+			}
+
+			private function onResultRemoverCodigoCliente(event:ResultEvent):void{
+				if(event.result == false){
+					Alert.show("Erro ao tentar Codigo do Cliente","Alerta");
+				return;
+			}
+				Alert.show("Removido com sucesso!","Alerta");
+				serviceController.findAllCodigoCliente(LoginClienteBean(loginClienteCbx.selectedItem));
+			}
+			
+			private function editConfigAlarme():void{
+				codCliente = CodigoClienteBean(gridCodigoCliente.selectedItem);
+				this.selectedLogin();
+				codigoCliente.text = codCliente.codigo;
+				
+			}
+			private function selectedLogin():void{
+				var loginList:ArrayCollection = ArrayCollection(loginClienteCbx.dataProvider);
+				for(var i:int=0; i < loginList.length; i++){
+					var ll:LoginClienteBean = LoginClienteBean(loginList.getItemAt(i));
+					if(codCliente.idLoginCliente == ll.id){
+						loginClienteCbx.selectedIndex = i;
+						break;
+					}
+				}
+			}
+			
+			private function salvarCodigoCliente():void{
+				var validatorErrorArray:Array = Validator.validateAll(myValidators);;
+				var isValidForm:Boolean = validatorErrorArray.length == 0;
+				
+				if (isValidForm) {
+					codCliente.idLoginCliente = LoginClienteBean(loginClienteCbx.selectedItem).id;
+					codCliente.codigo = codigoCliente.text;
+
+					serviceController.salvarCodigoCliente(codCliente);		
+				}else {
+					var err:ValidationResultEvent;
+					var errorMessageArray:Array = [];
+					for each (err in validatorErrorArray) {
+						var errField:String = FormItem(err.currentTarget.source.parent).label
+						errorMessageArray.push(errField + ": Este campo é obrigatório.");
+					}
+					Alert.show(errorMessageArray.join("\n\n"), "Invalid form...", Alert.OK);
+				}
+			}
+			
+			private function onResultSalvarCodigoCliente(event:ResultEvent):void{
+				if(event.result == true){
+				Alert.show("Salvo com sucesso!","Alerta");
+				
+				serviceController.findAllCodigoCliente(LoginClienteBean(loginClienteCbx.selectedItem));
+				}else{
+					Alert.show("Erro ao tentar salvar configuração de alarme!","Alerta");
+					serviceController.findAllCodigoCliente(LoginClienteBean(loginClienteCbx.selectedItem));
+				}
+			}
+
+			protected function loginClienteCbx_changeHandler():void
+			{
+				serviceController.findAllCodigoCliente(LoginClienteBean(loginClienteCbx.selectedItem));
+			}
+
+		]]>
+	</mx:Script>
+	<mx:NumberValidator id="campoLogin" source="{loginClienteCbx}" lowerThanMinError="Este campo  obrigatório." property="selectedIndex" minValue="0" />
+	<mx:StringValidator id="campoCodigo" requiredFieldError="Este campo é obrigatório!" required="true" source="{codigoCliente}" property="text" />
+	<mx:RemoteObject destination="service" invoke="{ProgressBarHelper.openProgressBar(this)}" id="serviceController" showBusyCursor="true" fault="{ProgressBarHelper.erro(event,urlLogin);ProgressBarHelper.removeProgressBar();}">
+		<mx:method name="findAllLoginCliente" result="onResultFindAllLoginCliente(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="salvarCodigoCliente" result="onResultSalvarCodigoCliente(event)" />
+		<mx:method name="removerCodigoCliente" result="onResultRemoverCodigoCliente(event)" />
+		<mx:method name="findAllCodigoCliente" result="onResultFindAllCodigoCliente(event);ProgressBarHelper.removeProgressBar()" />
+	</mx:RemoteObject>
+	
+	<mx:ApplicationControlBar x="0" y="0"  width="100%" horizontalAlign="center">
+		<mx:Label text="Cadastrar Codigo de Cliente" fontWeight="bold"/>
+	</mx:ApplicationControlBar>
+	<mx:DataGrid x="0" y="211" width="100%" height="441" id="gridCodigoCliente" doubleClickEnabled="true" doubleClick="editConfigAlarme()">
+		<mx:columns>
+			<mx:DataGridColumn headerText="Login Cliente" dataField="loginCliente"/>
+			<mx:DataGridColumn headerText="Código Cliente" dataField="codigo"/>
+			<mx:DataGridColumn headerText="Excluir">
+				<mx:itemRenderer> 
+					<mx:Component>
+						<mx:VBox verticalGap="2" horizontalAlign="center">
+							<mx:Image source="img/remover.png" width="15" buttonMode="true" height="15" click="{dispatchEvent(new Event('REMOVERCONFIGALARME', true))}"/>
+						</mx:VBox>
+					</mx:Component> 
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:VBox x="0" y="37" width="100%" horizontalAlign="center">
+		<mx:VBox height="100%">
+			<mx:Form> 
+				<mx:FormItem label="Login Cliente" required="true">
+					<mx:ComboBox id="loginClienteCbx" prompt="Selecione"  labelField="loginCliente" change="loginClienteCbx_changeHandler()"></mx:ComboBox>
+				</mx:FormItem>
+				<!--mx:FormItem label="Tipo Tração" required="true">
+					<mx:ComboBox id="tipoTracaoCbx" labelField="descricao" />
+				</mx:FormItem-->
+			</mx:Form>
+		</mx:VBox>
+		<mx:Form> 
+			<mx:FormItem label="Codigo Cliente" required="true">
+				<mx:TextInput id="codigoCliente"/>
+			</mx:FormItem>
+		</mx:Form>
+	</mx:VBox>
+	<mx:HBox width="100%" x="0" y="181" horizontalAlign="center">
+		<mx:Button label="Salvar" click="salvarCodigoCliente()"/>
+		<mx:Button label="Novo" click="novo()"/>
+	</mx:HBox>
+	
+</mx:Canvas>

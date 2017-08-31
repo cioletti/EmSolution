@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<util:ModuleTitleWindow title="Clonar Oportunidade SMU" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:util="util.*" layout="absolute" width="530" height="386">
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.rpc.events.ResultEvent;
+			
+			import util.ProgressBarHelper;
+			private var urlLogin:String;
+			private var idProposta:Number;
+			private var idTipoOportunidade:Number;
+			public function init(urlLogin:String, idProposta:Number, idTipoOportunidade:Number):void{
+				this.urlLogin = urlLogin;
+				this.idProposta = idProposta;
+				this.idTipoOportunidade = idTipoOportunidade;
+			}
+			public function onResultVerificarSerieClonada(event:ResultEvent):void{
+				if(String(event.result) == null || String(event.result) == ''){
+					if(gridSerie.dataProvider == null){
+					  gridSerie.dataProvider =	new ArrayCollection();
+					}
+					for(var i:int=0; i < ArrayCollection(gridSerie.dataProvider).length; i++){
+						var serie:String = String(ArrayCollection(gridSerie.dataProvider).getItemAt(i)); 
+						if(serie == serieText.text){
+							Alert.show("A série já foi adicionado a lista de proposta(s) para clonar!", "Alerta");
+							return;
+						}
+					}
+					
+					ArrayCollection(gridSerie.dataProvider).addItem(serieText.text);
+				}else{
+					Alert.show(String(event.result), "Alerta");
+				}
+			}
+			public function onResultClonarPropostaSerieMotorTransmissao(event:ResultEvent):void{
+				if(String(event.result) == null || String(event.result) == ''){
+					Alert.show("Clone realizado com sucesso!", "Alerta");
+				}else{
+					Alert.show(String(event.result), "Alerta");
+				}
+			}
+
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				if(gridSerie.dataProvider == null || ArrayCollection(gridSerie.dataProvider).length == 0){
+					Alert.show("Não é permitido clonar sem série informada!", "Alerta");
+					return;
+				}
+				serviceController.clonarPropostaSerieMotorTransmissao(ArrayCollection(gridSerie.dataProvider),  idProposta,  idTipoOportunidade);
+			}
+
+
+			protected function button2_clickHandler(event:MouseEvent):void
+			{
+				if(serieText.text == null || serieText.text == ''){
+					Alert.show("O Campo série é obrigatório!", "Alerta");
+					return;
+				}
+				serviceController.verificarSerieClonada(serieText.text, this.idProposta);
+			}
+
+		]]>
+	</mx:Script>
+	<mx:RemoteObject destination="service" invoke="{ProgressBarHelper.openProgressBar(this)}" id="serviceController" showBusyCursor="true" fault="ProgressBarHelper.erro(event, urlLogin);ProgressBarHelper.removeProgressBar()">
+		<mx:method name="verificarSerieClonada" result="onResultVerificarSerieClonada(event);ProgressBarHelper.removeProgressBar()"/>
+		<mx:method name="clonarPropostaSerieMotorTransmissao" result="onResultClonarPropostaSerieMotorTransmissao(event);ProgressBarHelper.removeProgressBar()"/>
+	</mx:RemoteObject>
+	<mx:Button x="327" y="39" label="Adicionar" click="button2_clickHandler(event)"/>
+	<mx:Button x="211" y="309" label="Clonar" click="button1_clickHandler(event)"/>
+	<mx:TextInput x="150" y="40" id="serieText"/>
+	<mx:Label x="81" y="44" text="Série"/>
+	<mx:DataGrid x="0" y="88" width="502" height="213" id="gridSerie">
+		<mx:columns>
+			<mx:DataGridColumn headerText="Número de Série" dataField="col1"/>
+		</mx:columns>
+	</mx:DataGrid>
+	
+</util:ModuleTitleWindow>

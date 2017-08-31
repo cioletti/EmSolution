@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<util:ModuleTitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:util="util.*" layout="absolute" width="670" height="392" title="Enviar para Área Responsável" xmlns:componente="componente.*">
+	<mx:Script>
+		<![CDATA[
+			import bean.ConsultorBean;
+			import bean.OrigemNegocioBean;
+			import bean.PropostaBean;
+			import bean.StatusOportunidadeBean;
+			import bean.TipoOportunidadeBean;
+			import bean.UsuarioBean;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.rpc.events.ResultEvent;
+			
+			import util.ProgressBarHelper;
+			public var proposta:PropostaBean = new PropostaBean();
+			//private var dt:Date= new Date();
+			private var urlLogin:String;
+			private var listaOk:Boolean;
+			public function init(urlLogin:String, proposta:PropostaBean):void{
+				this.urlLogin = urlLogin;
+				this.proposta = proposta;
+				serviceController.findAllTipoOportunidade();
+				serviceController.findAllOrigemNegocio();
+				obsText.text = this.proposta.obs;
+				if(this.proposta.siglaStatusOprtunidade == "FIN"){
+					enviarButt.includeInLayout = false;
+					enviarButt.visible = false;
+				}
+			}
+			private function onResultFindAllTipoOportunidade(event:ResultEvent):void{
+				tipoOportunidadeCbx.dataProvider = ArrayCollection(event.result);
+				this.selectedTipoOportunidade();
+				serviceController.findAllStatusOportunidade();
+			}
+			private function onResultFindAllStatusOportunidade(event:ResultEvent):void{
+				statusOportunidadeCbx.dataProvider = ArrayCollection(event.result);
+				this.selectedStatusOportunidade();
+				serviceController.findAllConsultor(this.proposta.codigoCiente);
+			}
+			private function onResultFindAllConsultor(event:ResultEvent):void{
+				userList.dataProvider = ArrayCollection(event.result);
+				//this.selectedConsultor();
+			}
+			private function onResultEnviarProposta(event:ResultEvent):void{
+				Alert.show(String(event.result), "Alerta");
+				this.close();
+			}
+			private function onResultFindAllOrigemNegocio(event:ResultEvent):void{
+				origemNegocioCbx.dataProvider = ArrayCollection(event.result);
+			}
+			//private function selectedConsultor():void{
+				//var conList:ArrayCollection = ArrayCollection(userList.dataProvider);
+				//for(var i:int=0; i < conList.length; i++){
+				//	var con:ConsultorBean = ConsultorBean(conList.getItemAt(i));
+				//	if(con.isSelected == true){
+				//		userList.
+				//		break;
+				//	}
+				//}
+			//}
+			
+			private function selectedTipoOportunidade():void{
+				var tpList:ArrayCollection = ArrayCollection(tipoOportunidadeCbx.dataProvider);
+				for(var i:int=0; i < tpList.length; i++){
+					var tp:TipoOportunidadeBean = TipoOportunidadeBean(tpList.getItemAt(i));
+					if(this.proposta.siglaTipoOprtunidade == tp.sigla){
+						tipoOportunidadeCbx.selectedIndex = i;
+						break;
+					}
+				}
+			}
+			private function selectedStatusOportunidade():void{
+				var sList:ArrayCollection = ArrayCollection(statusOportunidadeCbx.dataProvider);
+				for(var i:int=0; i < sList.length; i++){
+					var s:StatusOportunidadeBean = StatusOportunidadeBean(sList.getItemAt(i));
+					if(this.proposta.siglaStatusOprtunidade == s.sigla){
+						statusOportunidadeCbx.selectedIndex = i;
+						break;
+					}
+				}
+			}
+			
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+
+				if(obsText.text == ''){
+					Alert.show("O campo observação é obrigatório!", "Alerta");
+					return;
+				}
+				var consultorList:ArrayCollection = ArrayCollection(userList.dataProvider);
+				var count:int = 0;
+				for(var i:int = 0; i < consultorList.length; i++){
+					var consultor:ConsultorBean = ConsultorBean(consultorList.getItemAt(i));
+					if(consultor.isSelected == true){
+						listaOk = true;
+						count++;
+					}
+				}
+				if(origemNegocioCbx.selectedIndex == -1){
+					Alert.show("Selecione a origem de negócio!", "Alerta");
+					return;	
+				}
+				if(count > 1){
+					Alert.show("Só é permitido selecionar um consultor!", "Alerta");
+					return;	
+				}
+				if(!listaOk){
+					Alert.show("Selecione pelo menos um consultor!", "Alerta");
+					return;
+				}
+				if(TipoOportunidadeBean(tipoOportunidadeCbx.selectedItem).sigla == 'CRM'){
+					serviceController.enviarProposta(obsText.text, userList.dataProvider, TipoOportunidadeBean(tipoOportunidadeCbx.selectedItem).id, this.proposta.id, OrigemNegocioBean(origemNegocioCbx.selectedItem).descricao);
+				} else if(TipoOportunidadeBean(tipoOportunidadeCbx.selectedItem).sigla == 'RECCON'){//Recomendação
+					serviceController.enviarProposta(obsText.text, userList.dataProvider, TipoOportunidadeBean(tipoOportunidadeCbx.selectedItem).id, this.proposta.id, OrigemNegocioBean(origemNegocioCbx.selectedItem).descricao);
+				}
+				
+				//serviceController.enviarProposta();
+				
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:RemoteObject destination="service" invoke="{ProgressBarHelper.openProgressBar(this)}" id="serviceController" showBusyCursor="true" fault="{ProgressBarHelper.erro(event,urlLogin);ProgressBarHelper.removeProgressBar();}">
+		<mx:method name="findAllTipoOportunidade" result="onResultFindAllTipoOportunidade(event)" />
+		<mx:method name="findAllStatusOportunidade" result="onResultFindAllStatusOportunidade(event)" />
+		<mx:method name="findAllConsultor" result="onResultFindAllConsultor(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="findAllOrigemNegocio" result="onResultFindAllOrigemNegocio(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="enviarProposta" result="onResultEnviarProposta(event);ProgressBarHelper.removeProgressBar()" />
+		
+	</mx:RemoteObject>	
+	<mx:VBox x="0" y="23" width="100%" height="100%" horizontalAlign="center">
+		<mx:Form height="100%">
+			<mx:FormItem label="Tipo Oportuniddade">
+				<mx:ComboBox id="tipoOportunidadeCbx" labelField="descricao" enabled="false"></mx:ComboBox>
+			</mx:FormItem>
+			<mx:FormItem label="Status Oportunidade">
+				<mx:ComboBox id="statusOportunidadeCbx" labelField="descricao" enabled="false"></mx:ComboBox>
+			</mx:FormItem>
+			<mx:FormItem label="Origem Negócio">
+				<mx:ComboBox id="origemNegocioCbx" prompt="Selecione" labelField="descricao"></mx:ComboBox>
+			</mx:FormItem>
+			<mx:HBox height="100%" width="100%" >
+				<mx:List  id="userList"  labelField="nome" alternatingItemColors="[#EEEEEE, white]" rowCount="5" height="100%" width="100%" y="148">
+					<mx:itemRenderer>
+						<mx:Component>
+							<mx:CheckBox selectedField="isSelected"
+										 change="onChange(event);" selected="{data.isSelected}">
+								<mx:Script>
+									<![CDATA[
+										private function onChange(evt:Event):void {
+											data.isSelected = this.selected;
+										}
+									]]>
+								</mx:Script>
+							</mx:CheckBox>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:List>
+			</mx:HBox>
+			<mx:FormItem label="Observações" height="84">
+				<mx:TextArea height="79" id="obsText"/>
+			</mx:FormItem>
+		</mx:Form>
+		<mx:Button label="Enviar" click="button1_clickHandler(event)" id="enviarButt"/>
+	</mx:VBox>
+	
+</util:ModuleTitleWindow>

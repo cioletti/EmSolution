@@ -1,0 +1,258 @@
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute"
+				horizontalAlign="center" paddingTop="0" verticalScrollPolicy="auto" horizontalScrollPolicy="auto" viewSourceURL="srcview/index.html" color="#000101" borderColor="#FFFFFF" width="100%" height="100%" 
+				creationComplete="init()" xmlns:print="org.print.*"
+				xmlns:jrv="com.jaspersoft.reports.viewer.*" >
+	<mx:Style source="emsolutionCSS.css"/>
+	<mx:Script><![CDATA[
+		import bean.FilialBean;
+		
+		import componente.OportunidadesOrcamento;
+		
+		import bean.SistemaBean;
+		import bean.UsuarioBean;
+		
+		import componente.AlterPassword;
+		import componente.CadastrarCodigoCliente;
+		import componente.CadastrarFmi;
+		import componente.ConfiguracaoAlarme;
+		import componente.ConsumoCombustivel;
+		import componente.DiagnosticDetail;
+		import componente.LoginCliente;
+		import componente.OportunidadesSegmentos;
+		import componente.UploadSmu;
+		import componente.UploadSos;
+		
+		import mx.collections.ArrayCollection;
+		import mx.collections.XMLListCollection;
+		import mx.core.IFlexDisplayObject;
+		import mx.events.CloseEvent;
+		import mx.events.MenuEvent;
+		import mx.managers.PopUpManager;
+		import mx.rpc.events.ResultEvent;
+		
+		import util.ProgressBarHelper;
+		
+		public var urlLogin:String = "";
+		private var urlReport:String = "";
+		private var urlMapa:String = "";
+		private var _usuarioBean:UsuarioBean;
+		
+		
+		
+		public function init():void{
+			
+			serviceController.getUrlLogintServer();
+			serviceController.verificarLogin();
+			serviceController.getUrlReportServer();
+			//serviceController.findUrlMapa();
+			serviceController.findAllFiliais();
+		}
+		
+		public function popupAlterPassword():void{				
+			var alterPassword:AlterPassword = new AlterPassword();
+			alterPassword.addEventListener(CloseEvent.CLOSE, removePopUpAlterSenha);
+			PopUpManager.addPopUp(alterPassword,this,true);
+			PopUpManager.centerPopUp(alterPassword)
+			alterPassword.init(urlLogin);
+			alterPassword.percentWidth = 500;
+			alterPassword.percentHeight = 300;									
+		}
+		
+		private function removePopUpAlterSenha(obj:CloseEvent):void{
+			PopUpManager.removePopUp(obj.currentTarget as IFlexDisplayObject);
+		}
+		
+		public function onFindIndicadorEq(event:ResultEvent):void{
+			//myChart.dataProvider = ArrayCollection(event.result);
+		}
+		private function onResultGetUrlLogintServer(event:ResultEvent):void{
+			urlLogin = String(event.result);
+		}
+		private function onResultGetUrlReportServer(event:ResultEvent):void{
+			urlReport = String(event.result);
+		}
+		private function onResultInvalidarSessao(event:ResultEvent):void{
+			_usuarioBean = new UsuarioBean();
+			
+		}
+		public function invalidarSessao(tipo:String):void
+		{	
+			if(tipo == 'SAIR'){
+				serviceController.invalidarSessao();
+				var uv:URLVariables = new URLVariables();
+				var url:URLRequest = new URLRequest(urlLogin);
+				url.method = "POST";
+				navigateToURL(url,"_self");
+			}else{
+				var uv:URLVariables = new URLVariables();
+				uv.matricula = _usuarioBean.login;
+				uv.senha = _usuarioBean.senha;
+				var url:URLRequest = new URLRequest(urlLogin+"/LoginUsuario");
+				url.method = "POST";
+				url.data = uv;
+				navigateToURL(url,"_self");
+				serviceController.invalidarSessao();
+				
+			}
+		}
+		
+		private function onResultVerificarLogin(event:ResultEvent):void{
+			if(event.result != null){
+				_usuarioBean = UsuarioBean(event.result);
+				usuarioLogadoText.text = _usuarioBean.nome;
+				//				if(_usuarioBean.isAdm || _usuarioBean.siglaPerfil == 'OPER'){
+				//					filialCbx.visible = true;
+				//				}
+				for(var i:int = 0; i < _usuarioBean.sistemaList.length; i++){
+					var sis:SistemaBean = SistemaBean(_usuarioBean.sistemaList.getItemAt(i));
+					if(sis.sigla == 'EMS'){
+						if(sis.perfilBean.sigla == 'ADM'){
+							menuBarCollection = new XMLListCollection(menubarXML);
+						} else if(sis.perfilBean.sigla == 'OPER'){
+							menuBarCollection = new XMLListCollection(menubarOperadorXML);
+						} 
+					}
+				}
+			}
+		}
+		
+		//<menuitem label="Imprimir Contrato Jurídico" data="CONT_JUR"/>
+		//<menuitem label="Contratos AVM" data="AVM"/>
+		//
+		[Bindable]
+		public var menuBarCollection:XMLListCollection;
+		
+		private var menubarXML:XMLList =
+			<>
+				<menuitem label="Administração">
+					<menuitem label="Cadastrar Codigo Cliente" data="CAD_COD"/>
+					<menuitem label="Cadastrar Combustível" data="CAD_COM"/>
+					<menuitem label="Cadastrar FMI" data="FMI"/>
+					<menuitem label="Cadastrar Login Cliente" data="CLC"/>
+					<menuitem label="Configurar Alarme" data="CAD_TA"/>
+					<menuitem label="Diagnóstico Máquinas" data="DMA"/>
+					<menuitem label="Importar SMU" data="IMP_SMU"/>
+					<menuitem label="Importar SOS" data="IMP_SOS"/>
+					<menuitem label="Oportunidades em orçamento" data="OPT_ORC"/>
+				</menuitem>
+			</>
+		private var menubarOperadorXML:XMLList =
+			<>
+				<menuitem label="Operador">
+					<menuitem label="Diagnóstico Máquinas" data="DMA"/>
+				</menuitem>
+			</>
+		
+		
+		
+		private function itemClickHandler(event:MenuEvent):void {
+			var opcao:String = event.item.@data;	
+			
+			pmpCanvas.removeAllChildren();
+			if(opcao == "CAD_TA"){ 
+				var cadTa:ConfiguracaoAlarme = new ConfiguracaoAlarme ();
+				pmpCanvas.addChild(cadTa);
+				cadTa.init(urlLogin);
+			}else if(opcao == "IMP_SOS"){ 
+				var imSos:UploadSos = new UploadSos();
+				pmpCanvas.addChild(imSos);
+				imSos.init(urlLogin);
+			}else if(opcao == "IMP_SMU"){ 
+				var imSmu:UploadSmu = new UploadSmu();
+				pmpCanvas.addChild(imSmu);
+				imSmu.init(urlLogin);
+			}
+			if(opcao == "DMA"){ 
+				var dd:DiagnosticDetail = new DiagnosticDetail();
+				pmpCanvas.addChild(dd);
+				dd.init(_usuarioBean, urlLogin);
+			}
+			if(opcao == "CLC"){ 
+				var clc:LoginCliente = new LoginCliente();
+				pmpCanvas.addChild(clc);
+				clc.init(urlLogin);
+			}
+			if(opcao == "FMI"){ 
+				var fmi:CadastrarFmi = new CadastrarFmi();
+				pmpCanvas.addChild(fmi);
+				fmi.init(urlLogin);
+			}
+			if(opcao == "CAD_COD"){ 
+				var cadCod:CadastrarCodigoCliente = new CadastrarCodigoCliente();
+				pmpCanvas.addChild(cadCod);
+				cadCod.init(urlLogin);
+			}
+			if(opcao == "CAD_COM"){ 
+				var cadcom:ConsumoCombustivel = new ConsumoCombustivel();
+				pmpCanvas.addChild(cadcom);
+				cadcom.init(urlLogin);
+			}
+			if(opcao == 'OPT_ORC'){
+				var optOrc:OportunidadesOrcamento = new OportunidadesOrcamento();
+				pmpCanvas.addChild(optOrc);
+				optOrc.init(urlLogin);
+			}
+		} 
+		
+		private function onResultFindUrlMapa(event:ResultEvent):void{
+			urlMapa = String(event.result);
+		}
+		
+		private function onResultFindAllFilial(event:ResultEvent):void{
+			filialCbx.dataProvider = ArrayCollection(event.result);
+			this.selectedFilialCbx();
+		} 
+		
+		private function selectedFilialCbx():void{
+			var filialList:ArrayCollection = ArrayCollection(filialCbx.dataProvider);
+			for(var i:int=0; i < filialList.length; i++){
+				var f:FilialBean = FilialBean(filialList.getItemAt(i));
+				if(_usuarioBean != null && Number(_usuarioBean.filial) == f.stno){
+					filialCbx.selectedIndex = i;
+					break;
+				}
+			}
+		}
+		
+		private function selectNewFilial():void{
+			serviceController.changeUser(FilialBean(filialCbx.selectedItem).stno);
+			_usuarioBean.filial = String(FilialBean(filialCbx.selectedItem).stno);
+		}
+		
+		
+	]]>
+		
+	</mx:Script>
+	
+	<mx:RemoteObject destination="service" invoke="{ProgressBarHelper.openProgressBar(this)}" id="serviceController" showBusyCursor="true" fault="{ProgressBarHelper.erro(event,urlLogin);ProgressBarHelper.removeProgressBar();}">
+		<mx:method name="getUrlLogintServer" result="onResultGetUrlLogintServer(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="verificarLogin" result="onResultVerificarLogin(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="invalidarSessao" result="onResultInvalidarSessao(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="getUrlReportServer" result="onResultGetUrlReportServer(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="findAllFiliais" result="onResultFindAllFilial(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="changeUser" result="ProgressBarHelper.removeProgressBar()" />
+		<!--<mx:method name="findUrlMapa" result="onResultFindUrlMapa(event);ProgressBarHelper.removeProgressBar()" /
+		<mx:method name="changeUser" result="ProgressBarHelper.removeProgressBar()" /-->
+	</mx:RemoteObject>
+	
+	<mx:Resize id="resizeEffect"   duration="1000"/>
+	
+	<mx:ApplicationControlBar x="0" y="0" width="100%" height="50">
+		<mx:Image width="140" source="img/logo.png" height="43"/>
+		<mx:Label text="2.4"/>
+		<mx:HBox width="65%" horizontalAlign="right" verticalAlign="middle">
+			<mx:Label text="" id="usuarioLogadoText" height="32" paddingTop="10"/>
+			<mx:Image source="img/menu.png" visible="true" buttonMode="true" id="menu" toolTip="Painel de Controle" click="invalidarSessao('MENU')" height="32" width="32"/>
+			<mx:Image source="img/logout.png" visible="true" buttonMode="true" id="logout" toolTip="Sair do Sistema" click="invalidarSessao('SAIR')" height="32" width="32"/>
+		</mx:HBox>
+	</mx:ApplicationControlBar>
+	<mx:HBox x="0" y="58" width="100%">
+		<mx:MenuBar labelField="@label"  
+					dataProvider="{menuBarCollection}"
+					
+					itemClick="itemClickHandler(event);" 
+					x="10" y="58"/>
+		<mx:ComboBox editable="true" id="filialCbx" labelField="stnm" prompt="Selecione" change="selectNewFilial()" visible="true"></mx:ComboBox>
+	</mx:HBox>
+	<mx:Canvas width="100%" height="100%"   resizeEffect="resizeEffect" id="pmpCanvas" x="0" y="85"/>
+</mx:Application>

@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="utf-8"?>
+<util:ModuleTitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:util="util.*" layout="absolute" width="1612" height="700" title="Detalhes do Diagnóstico" xmlns:componente="componente.*">
+	<mx:Script>
+		<![CDATA[
+			import bean.Detalhes;
+			import bean.SosBean;
+			import bean.DetalhesDiagnosticoBean;
+			import bean.DiagnosticoBean;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.rpc.events.ResultEvent;
+			
+			import util.ProgressBarHelper;
+			private var urlLogin:String;
+			private var dBean:DiagnosticoBean = new DiagnosticoBean();
+			private var pipPspGarantia:DiagnosticoBean = new DiagnosticoBean();
+			private var listSos:ArrayCollection = new ArrayCollection();
+			public function init(dBean:DiagnosticoBean, urlLogin:String):void{
+				
+				this.dBean = dBean;
+				this.urlLogin = urlLogin;
+				gridSos.addEventListener("IMPRIMIRRELATORIO", imprimirRelatorio);
+				horimetro.text = String(dBean.detalhesDiagnosticoBean.horimetro);
+				dtUltimaAt.text = dBean.detalhesDiagnosticoBean.dataAtualizacaoHorimetro;
+				tpContrato.text = dBean.detalhesDiagnosticoBean.tipoContrato;
+				dtAceite.text = dBean.detalhesDiagnosticoBean.dataAceite;
+				levelTxt1.text = String(dBean.detalhesDiagnosticoBean.level1);
+				levelTxt2.text = String(dBean.detalhesDiagnosticoBean.level2);
+				levelTxt3.text = String(dBean.detalhesDiagnosticoBean.level3);
+				dataInspecao.text = String(dBean.detalhesDiagnosticoBean.dataInspecao);
+				dataInspecaoCampo.text = String(dBean.detalhesDiagnosticoBean.dataInspecaoCampo);
+				sosNormal.text = String(dBean.detalhesDiagnosticoBean.normalSos);
+				sosMonitorar.text = String(dBean.detalhesDiagnosticoBean.monitorarSos);
+				sosCritico.text = String(dBean.detalhesDiagnosticoBean.criticoSos);
+				smuCritico.text = String(dBean.totalSmu);
+				serviceController.findallPipPspGarantia(this.dBean.numeroSerie);
+				
+			}
+			
+			public function imprimirRelatorio(evt:Event):void{
+				serviceController.getUrlReport();
+			}
+			public function gerarReport():void{
+				var uv:URLVariables = new URLVariables();
+				uv.serialNumber = SosBean(gridSos.selectedItem).serialNumber;
+				uv.processDate = SosBean(gridSos.selectedItem).processDate;
+				uv.compCode = SosBean(gridSos.selectedItem).compCode;
+				uv.manufacturer = SosBean(gridSos.selectedItem).manufacturer;
+				uv.model = SosBean(gridSos.selectedItem).model;
+				uv.compDesc = SosBean(gridSos.selectedItem).compDesc;
+				uv.customer = SosBean(gridSos.selectedItem).customer;
+				uv.equipNumber = SosBean(gridSos.selectedItem).equipNumber;
+				uv.jobsite = SosBean(gridSos.selectedItem).jobsite
+				generatePDF(uv);
+			}
+			
+			private var urlReport:String = "";
+			private function onResultGetUrlReport(event:ResultEvent):void{
+				urlReport = String(event.result);
+				this.gerarReport();
+			}
+			public function generatePDF(uv:URLVariables):void
+			{	
+
+				var url:URLRequest = new URLRequest(urlReport+"/RelatorioSosArrefecimento");
+				if(SosBean(gridSos.selectedItem).tipoAnalise == "AO"){
+					 url = new URLRequest(urlReport+"/RelatorioSos");
+				}
+				url.method = "GET";
+				url.data = uv;
+				navigateToURL(url,"_blank");
+			}
+			
+			private function onResultFindConfigAlarme(event:ResultEvent):void{
+				gridCodigoAlarme.dataProvider = event.result;
+			}
+
+			protected function levelTxt1_changeHandler(event:Event):void
+			{
+				this.resizeCanvasDetailPl();
+				serviceController.findConfigAlarme(1,this.dBean.numeroSerie);
+			}
+
+
+			protected function levelTxt2_changeHandler(event:Event):void
+			{
+				this.resizeCanvasDetailPl();
+				serviceController.findConfigAlarme(2,this.dBean.numeroSerie);
+			}
+
+
+			protected function levelTxt3_changeHandler(event:Event):void
+			{
+				this.resizeCanvasDetailPl();
+				serviceController.findConfigAlarme(3,this.dBean.numeroSerie);
+			}
+			
+			public function dataInspecao_click(event:Event):void
+			{
+				if(this.dBean.detalhesDiagnosticoBean.dataInspecao != 'N/A'){
+					this.resizeCanvasTree();
+					inspecaoPMPTree.recebeObjeto(this.dBean.detalhesDiagnosticoBean.idOsPalm,urlLogin);
+				}
+			}
+			public function dataInspecaoCampo_click(event:Event):void
+			{
+				if(this.dBean.detalhesDiagnosticoBean.dataInspecaoCampo != 'N/A'){
+					this.resizeCanvasTreeCampo();
+					inspecaoCampoPMPTree.recebeObjeto(this.dBean.detalhesDiagnosticoBean.idOsPalmCampo,urlLogin);
+				}
+			}
+			
+			private function resizeCanvasTreeCampo():void
+			{
+				inspecaoCampoPMPTree.includeInLayout = true;
+				inspecaoCampoPMPTree.visible = true;
+				inspecaoPMPTree.visible = false;
+				gridCodigoAlarme.visible = false;
+				gridCodigoAlarme.includeInLayout = false;
+				inspecaoPMPTree.includeInLayout = false;
+				gridSos.includeInLayout = false;
+				gridSos.visible = false;
+				gridSmu.includeInLayout = false;
+				gridSmu.visible = false;
+			}
+			private function resizeCanvasTree():void
+			{
+				
+				inspecaoCampoPMPTree.includeInLayout = false;
+				inspecaoCampoPMPTree.visible = false;
+				inspecaoPMPTree.visible = true;
+				gridCodigoAlarme.visible = false;
+				gridCodigoAlarme.includeInLayout = false;
+				inspecaoPMPTree.includeInLayout = true;
+				gridSos.includeInLayout = false;
+				gridSos.visible = false;
+				gridSmu.includeInLayout = false;
+				gridSmu.visible = false;
+			}
+			private function resizeCanvasDetailPl():void
+			{
+				inspecaoCampoPMPTree.includeInLayout = false;
+				inspecaoCampoPMPTree.visible = false;
+				inspecaoPMPTree.visible = false;
+				gridCodigoAlarme.visible = true;
+				gridCodigoAlarme.includeInLayout = true;
+				inspecaoPMPTree.includeInLayout = false;
+				gridSos.includeInLayout = false;
+				gridSos.visible = false;
+				gridSmu.includeInLayout = false;
+				gridSmu.visible = false;
+			}
+			private function resizeCanvassOS():void
+			{
+				inspecaoCampoPMPTree.includeInLayout = false;
+				inspecaoCampoPMPTree.visible = false;
+				inspecaoPMPTree.visible = false;
+				gridCodigoAlarme.visible = false;
+				gridCodigoAlarme.includeInLayout = false;
+				inspecaoPMPTree.includeInLayout = false;
+				gridSos.includeInLayout = true;
+				gridSos.visible = true;
+				gridSmu.includeInLayout = false;
+				gridSmu.visible = false;
+			}
+			private function resizeCanvasSMU():void
+			{
+				inspecaoCampoPMPTree.includeInLayout = false;
+				inspecaoCampoPMPTree.visible = false;
+				inspecaoPMPTree.visible = false;
+				gridCodigoAlarme.visible = false;
+				gridCodigoAlarme.includeInLayout = false;
+				inspecaoPMPTree.includeInLayout = false;
+				gridSos.includeInLayout = false;
+				gridSos.visible = false;
+				gridSmu.includeInLayout = true;
+				gridSmu.visible = true;
+			}
+			
+			protected function sosNormal_changeHandler(event:Event):void
+			{
+				this.resizeCanvassOS();
+				//serviceController.findAllSos(this.dBean.numeroSerie,"NAR");
+			}
+			
+			
+			protected function sosMonitorar_changeHandler(event:Event):void
+			{
+				this.resizeCanvassOS();
+				//serviceController.findAllSos(this.dBean.numeroSerie,"MC");
+			}
+			
+			
+			protected function sosCritico_changeHandler(event:Event):void
+			{
+				this.resizeCanvassOS();
+				serviceController.findAllSos(this.dBean.numeroSerie,"AR");
+			}
+			protected function onResultFindAllSos(event:ResultEvent):void
+			{
+					gridSos.dataProvider = event.result;
+			}
+			protected function smuCritico_changeHandler(event:Event):void
+			{
+				this.resizeCanvasSMU();
+				serviceController.findAllSmu(this.dBean.numeroSerie);
+			}
+			protected function onResultFindAllSmu(event:ResultEvent):void
+			{
+					gridSmu.dataProvider = event.result;
+			}
+			protected function onResultFindallPipPspGarantia(event:ResultEvent):void
+			{
+					 this.pipPspGarantia = DiagnosticoBean(event.result);
+					 dataFim.text = pipPspGarantia.fimGarantia;
+					 dataInicio.text = pipPspGarantia.inicioGarantia;
+					 pipPsp.text = pipPspGarantia.pip + "/" + pipPspGarantia.psp;
+					 if(isNaN(this.dBean.detalhesDiagnosticoBean.horimetro) || this.dBean.detalhesDiagnosticoBean.horimetro == 0){
+						 serviceController.findHorimetroDataAtualizacao(this.dBean);
+					 }else{
+						 ProgressBarHelper.removeProgressBar();
+					 }
+					 
+			}
+			protected function onResultFindHorimetroDataAtualizacao(event:ResultEvent):void
+			{
+				this.dBean = DiagnosticoBean(event.result);
+				horimetro.text = String(dBean.detalhesDiagnosticoBean.horimetro);
+				dtUltimaAt.text = dBean.detalhesDiagnosticoBean.dataAtualizacaoHorimetro;
+			}
+
+		]]>
+	</mx:Script>
+	<mx:Dissolve id="dissolveOut" duration="1000" alphaFrom="1.0" alphaTo="0.0"/>
+	<mx:Dissolve id="dissolveIn" duration="1000" alphaFrom="0.0" alphaTo="1.0"/>
+	<mx:RemoteObject destination="service" invoke="{ProgressBarHelper.openProgressBar(this)}" id="serviceController" showBusyCursor="true" fault="ProgressBarHelper.erro(event,urlLogin);ProgressBarHelper.removeProgressBar()">
+		<mx:method name="findConfigAlarme" result="onResultFindConfigAlarme(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="findAllSos" result="onResultFindAllSos(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="findAllSmu" result="onResultFindAllSmu(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="findallPipPspGarantia" result="onResultFindallPipPspGarantia(event)" />
+		<mx:method name="findHorimetroDataAtualizacao" result="onResultFindHorimetroDataAtualizacao(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="getUrlReport" result="onResultGetUrlReport(event);ProgressBarHelper.removeProgressBar()" />
+	</mx:RemoteObject>
+	<mx:HBox horizontalAlign="center" width="100%">
+		<!--mx:Panel width="250" height="200" layout="absolute" title="Teste alguem">
+			<mx:Label text="{data}"/>
+		</mx:Panel>
+		<mx:Panel width="250" height="200" layout="absolute" title="Teste Para data">
+		<mx:Label text="{data.dataAtualizacaoHorimetro}"/>
+		</mx:Panel-->
+		<mx:Panel width="210" height="200" layout="absolute" title="Máquina Sumário">
+			<mx:VBox verticalAlign="middle" width="100%" height="100%" horizontalAlign="center">
+				<mx:Label text="Horímetro" id="horimetroStyle"  initialize="horimetroStyle.setStyle('fontWeight', 'bold')"/>
+				<mx:Label id="horimetro" textAlign="center"/>
+				<mx:Label text="Atualização Horímetro" id="dtUltimaAtStyle" initialize="dtUltimaAtStyle.setStyle('fontWeight', 'bold')"/>
+				<mx:Label id="dtUltimaAt" textAlign="center" width="160"/>
+			</mx:VBox>
+		</mx:Panel>
+
+		<mx:Panel width="210" height="200" layout="absolute" title="Diagnósticos PL" borderAlpha="1">
+			<mx:VBox verticalAlign="middle" horizontalAlign="center" width="100%" height="100%">
+				<mx:Label text="Nível 1" id="levelTxt1Style" initialize="levelTxt1Style.setStyle('fontWeight', 'bold')"/>
+				<mx:TextInput id="levelTxt1" width="60" textAlign="center" editable="false" cornerRadius="7" initialize="{levelTxt1.setStyle('backgroundColor','green')}" click="levelTxt1_changeHandler(event)" buttonMode="true"/>
+				<mx:Label text="Nível 2" id="levelTxt2Style" initialize="levelTxt2Style.setStyle('fontWeight', 'bold')"/>
+				<mx:TextInput id="levelTxt2" width="60" textAlign="center" editable="false" cornerRadius="7" initialize="{levelTxt2.setStyle('backgroundColor','yellow')}" click="levelTxt2_changeHandler(event)" buttonMode="true"/>
+				<mx:Label text="Nível 3" id="levelTxt3Style" initialize="levelTxt3Style.setStyle('fontWeight', 'bold')"/>
+				<mx:TextInput id="levelTxt3" width="60" textAlign="center" editable="false" cornerRadius="7" initialize="{levelTxt3.setStyle('backgroundColor','red')}" click="levelTxt3_changeHandler(event)" buttonMode="true"/>
+			</mx:VBox>
+		</mx:Panel>
+		<mx:Panel width="210" height="200" layout="absolute" borderAlpha="1" title="Inspeção">
+			<mx:VBox verticalAlign="middle" horizontalAlign="center" width="100%" height="100%">
+				<mx:Label text="Dt. Última Inspeção PMP" id="levelTxtPmpStyle" initialize="levelTxtPmpStyle.setStyle('fontWeight', 'bold')"/>
+				<mx:Label id="dataInspecao" textAlign="center" click="dataInspecao_click(event)" buttonMode="true"/>
+				<mx:Label text="Dt. Última Inspeção Campo" id="levelTxtCampoStyle" initialize="levelTxtCampoStyle.setStyle('fontWeight', 'bold')"/>
+				<mx:Label id="dataInspecaoCampo" textAlign="center" click="dataInspecaoCampo_click(event)" buttonMode="true"/>
+			</mx:VBox>
+		</mx:Panel>
+		<mx:Panel width="210" height="200" layout="absolute" title="Pmp">
+			<mx:VBox verticalAlign="middle"  width="100%" height="100%" horizontalAlign="center">
+				<mx:Label text="Tipo de Contrato" id="tpContratoStyle" initialize="tpContratoStyle.setStyle('fontWeight', 'bold')"/>
+				<mx:Label id="tpContrato" textAlign="center"/>
+				<mx:Label text="Data Aceite" id="dtAceiteStyle" initialize="dtAceiteStyle.setStyle('fontWeight', 'bold')"/>
+				<mx:Label id="dtAceite"  textAlign="center"/>
+			</mx:VBox>
+		</mx:Panel>
+		<mx:Panel width="210" height="200" layout="absolute" title="Sos" borderAlpha="1">
+			<mx:VBox verticalAlign="middle" horizontalAlign="center" width="100%" height="100%">
+				<mx:Label text="Normal" id="normalStyle" initialize="normalStyle.setStyle('fontWeight', 'bold')"/>
+				<mx:TextInput id="sosNormal" width="60" textAlign="center" cornerRadius="7" editable="false" initialize="{sosNormal.setStyle('backgroundColor','green')}" click="sosNormal_changeHandler(event)" buttonMode="true"/>
+				<mx:Label text="Monitorar" id="monitorarStyle" initialize="monitorarStyle.setStyle('fontWeight', 'bold')"/>
+				<mx:TextInput id="sosMonitorar" width="60" textAlign="center" cornerRadius="7" editable="false" initialize="{sosMonitorar.setStyle('backgroundColor','yellow')}" click="sosMonitorar_changeHandler(event)" buttonMode="true"/>
+				<mx:Label text="Crítico" id="criticoStyle" initialize="criticoStyle.setStyle('fontWeight', 'bold')"/>
+				<mx:TextInput id="sosCritico" width="60" textAlign="center" cornerRadius="7" editable="false" initialize="{sosCritico.setStyle('backgroundColor','red')}" click="sosCritico_changeHandler(event)" buttonMode="true"/>
+			</mx:VBox>
+		</mx:Panel>
+		<mx:Panel width="210" height="200" layout="absolute" borderAlpha="1" title="Garantia">
+			<mx:VBox verticalAlign="middle" horizontalAlign="center" width="100%" height="100%">
+					<mx:Label text="Data Inicio" height="21"/>
+					<mx:TextInput id="dataInicio" editable="false" textAlign="center" />
+					<mx:Label text="Data Fim" height="21"/>
+					<mx:TextInput id="dataFim" editable="false" textAlign="center"/>
+					<mx:Label text="PIP/PSP" height="21" />
+					<mx:TextInput id="pipPsp" editable="false" textAlign="center"/>
+			</mx:VBox>
+		</mx:Panel>
+		<mx:Panel width="210" height="200" layout="absolute" title="SMU" borderAlpha="1">
+			<mx:VBox verticalAlign="middle" horizontalAlign="center" width="100%" height="100%">
+				<mx:Label text="Crítico" id="criticoStyle0" initialize="criticoStyle.setStyle('fontWeight', 'bold')"/>
+				<mx:TextInput id="smuCritico" width="60" textAlign="center" cornerRadius="7" editable="false" initialize="{smuCritico.setStyle('backgroundColor','red')}" click="smuCritico_changeHandler(event)" buttonMode="true"/>
+			</mx:VBox>
+		</mx:Panel>
+
+	</mx:HBox>
+	<mx:HBox x="0" y="208" id="hboxDetailPl" horizontalAlign="center" width="100%" height="100%">
+		<mx:DataGrid x="0" y="208" height="100%" visible="false" width="100%" id="gridCodigoAlarme" includeInLayout="false" hideEffect="{dissolveOut}" showEffect="{dissolveIn}">
+			<mx:columns>
+				<mx:DataGridColumn headerText="Tipo&#13;Alarme" dataField="descTipoAlarme" width="95"/>
+				<mx:DataGridColumn headerText="Código&#13;MID" dataField="codigo" width="55"/>
+				<mx:DataGridColumn headerText="Código&#13;CID" dataField="codigoCidStr" width="55"/>
+				<mx:DataGridColumn headerText="Código&#13;FMI" dataField="codigoFmiStr" width="55"/>
+				<mx:DataGridColumn headerText="Código&#13;EID" dataField="codigoEidStr" width="55"/>
+				<mx:DataGridColumn headerText="Total" dataField="totalOcorrencias" width="55"/>
+				<mx:DataGridColumn headerText="Evento&#13;Diagnósticos">
+					<mx:itemRenderer> 
+						<mx:Component>
+							<mx:VBox verticalGap="2" horizontalAlign="center">
+								<mx:TextArea  textAlign="center" height="100" text="{data.eventoDiagnostico}"/>
+							</mx:VBox>
+						</mx:Component> 
+					</mx:itemRenderer>
+				</mx:DataGridColumn>	
+				
+				<mx:DataGridColumn headerText="Compartimento">
+					<mx:itemRenderer> 
+						<mx:Component>
+							<mx:VBox verticalGap="2" horizontalAlign="center">
+								<mx:TextArea  textAlign="center" height="100" text="{data.compartimento}"/>
+							</mx:VBox>
+						</mx:Component> 
+					</mx:itemRenderer>
+				</mx:DataGridColumn>	
+				<mx:DataGridColumn headerText="Possíveis&#13;Causas">
+					<mx:itemRenderer> 
+						<mx:Component>
+							<mx:VBox verticalGap="2" horizontalAlign="center">
+								<mx:TextArea  textAlign="center"  height="100" text="{data.possiveisCausas}"/>
+							</mx:VBox>
+						</mx:Component> 
+					</mx:itemRenderer>
+				</mx:DataGridColumn>	
+				<mx:DataGridColumn headerText="SOS">
+					<mx:itemRenderer> 
+						<mx:Component>
+							<mx:VBox verticalGap="2" horizontalAlign="center">
+								<mx:TextArea  textAlign="center" height="100" text="{data.indicadoresSos}"/>
+							</mx:VBox>
+						</mx:Component> 
+					</mx:itemRenderer>
+				</mx:DataGridColumn>	
+				<mx:DataGridColumn headerText="PM e TA">
+					<mx:itemRenderer> 
+						<mx:Component>
+							<mx:VBox verticalGap="2" horizontalAlign="center">
+								<mx:TextArea  textAlign="center" height="100" text="{data.pmTa}"/>
+							</mx:VBox>
+						</mx:Component> 
+					</mx:itemRenderer>
+				</mx:DataGridColumn>	
+				<mx:DataGridColumn headerText="Açoes&#13;Recomendações">
+					<mx:itemRenderer> 
+						<mx:Component>
+							<mx:VBox verticalGap="2" horizontalAlign="center">
+								<mx:TextArea  textAlign="center" height="100" text="{data.acoesRecomendadas}"/>
+							</mx:VBox>
+						</mx:Component> 
+					</mx:itemRenderer>
+				</mx:DataGridColumn>	
+			</mx:columns>
+		</mx:DataGrid>
+		<componente:InspecaoPmpTree width="100%" height="100%" id="inspecaoPMPTree" visible="false" includeInLayout="false" hideEffect="{dissolveOut}" showEffect="{dissolveIn}">
+		</componente:InspecaoPmpTree>
+		<componente:InspecaoCampoTree width="100%" height="100%" id="inspecaoCampoPMPTree" visible="false" includeInLayout="false" hideEffect="{dissolveOut}" showEffect="{dissolveIn}">
+		</componente:InspecaoCampoTree>
+		<mx:DataGrid x="0" y="208" height="100%" visible="false" width="100%" id="gridSos" includeInLayout="false" hideEffect="{dissolveOut}" showEffect="{dissolveIn}">
+			<mx:columns>
+				<mx:DataGridColumn headerText="Data Coleta" dataField="interpDateTime" width="55"/>
+				<mx:DataGridColumn headerText="Horímetro" dataField="meter" width="55"/>
+				<mx:DataGridColumn headerText="Compartimento" dataField="compDesc" width="55"/>
+				<mx:DataGridColumn headerText="Local Coleta"  dataField="jobsite" width="55"/>
+				<mx:DataGridColumn headerText="Interpretação"  dataField="interpretationText" width="55">
+					<mx:itemRenderer> 
+						<mx:Component>
+							<mx:VBox verticalGap="2" horizontalAlign="center">
+								<mx:TextArea  textAlign="center"  height="100" text="{data.interpretationText}"/>
+							</mx:VBox>
+						</mx:Component> 
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+				<mx:DataGridColumn headerText="Detalhes" width="15" >
+					<mx:itemRenderer> 
+						<mx:Component>
+							<mx:VBox verticalGap="2" horizontalAlign="center">
+								<mx:Image source="img/pdf.png" width="15" buttonMode="true" height="15" click="{dispatchEvent(new Event('IMPRIMIRRELATORIO', true))}"/>
+							</mx:VBox>
+						</mx:Component> 
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+			</mx:columns>
+		</mx:DataGrid>
+		<mx:DataGrid x="0" y="208" height="100%" visible="false" width="100%" id="gridSmu" includeInLayout="false" hideEffect="{dissolveOut}" showEffect="{dissolveIn}">
+			<mx:columns>
+				<mx:DataGridColumn headerText="Horímetro Anterior" dataField="horimetroAnterior" width="55"/>
+				<mx:DataGridColumn headerText="Próximo Horímetro" dataField="horimetroProximo" width="55"/>
+				<mx:DataGridColumn headerText="Tipo Serviço" dataField="tipoServico" width="55"/>
+				<mx:DataGridColumn headerText="Data Importação"  dataField="data" width="55"/>
+			</mx:columns>
+		</mx:DataGrid>
+	</mx:HBox>	
+</util:ModuleTitleWindow>

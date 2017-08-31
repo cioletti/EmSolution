@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%">
+	<mx:Script>
+		<![CDATA[
+			import bean.CadastrarFmiBean;
+			import bean.ConsumoCombustivelBean;
+			import bean.FamiliaBean;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.ListEvent;
+			import mx.events.ValidationResultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.validators.Validator;
+			
+			import util.ProgressBarHelper;
+			private var urlLogin:String;
+			private var cc:ConsumoCombustivelBean = new ConsumoCombustivelBean();
+			public function init(urlLogin:String):void{
+				this.urlLogin = urlLogin;
+				gridConsumo.addEventListener("REMOVERCONSUMO", removerConsumo);
+				serviceController.findAllFamilia();
+				serviceController.findAllConsumo();
+				
+			}
+			private function removerConsumo(ev:Event): void{
+				serviceController.removerConsumo(ConsumoCombustivelBean(gridConsumo.selectedItem));
+			}
+			
+			private function onResultSaveOrUpdateConsumo(event:ResultEvent):void{
+				if(event.result == null){
+					Alert.show("Erro ao tentar salvar configuração de alarme!","Alerta");
+					return;
+				}
+				cc =  ConsumoCombustivelBean(event.result);
+				Alert.show("Salvo com sucesso!","Alerta");
+				serviceController.findAllConsumo();
+			}
+			private function onResultRemoverConsumo(event:ResultEvent):void{
+				if(event.result == false){
+					Alert.show("Erro ao tentar remover tipo de tração!","Alerta");
+					return;
+				}
+				Alert.show("Removido com sucesso!","Alerta");
+				serviceController.findAllConsumo();
+			}
+			
+			private function editConsumo():void{
+				if(gridConsumo.selectedItem!= null){
+					cc = ConsumoCombustivelBean(gridConsumo.selectedItem);
+					minPorcentagemBaixo.value = cc.minPorcentagemBaixa;
+					maxPorcentagemBaixo.value = cc.maxPorcentagemBaixa;
+					minPorcentagemMedio.value = cc.minPorcentagemMedia;
+					maxPorcentagemMedio.value = cc.maxPorcentagemMedia;
+					minPorcentagemAlto.value = cc.minPorcentagemAlta;
+					maxPorcentagemAlto.value = cc.maxPorcentagemAlta;
+	                this.selectedFamiliaCBX();			
+				}
+			}
+			private function selectedFamiliaCBX():void{
+				var faList:ArrayCollection = ArrayCollection(familiaCBX.dataProvider);
+				for(var i:int=0; i < faList.length; i++){
+					var fa:FamiliaBean = FamiliaBean(faList.getItemAt(i));
+					if(cc.idFamilia == fa.id){
+					    familiaCBX.selectedIndex = i;
+						break;
+					}
+				}
+			}
+			private function salvarConsumo():void{
+				if (familiaCBX.selectedIndex == -1){
+					Alert.show("A família é obrigatória!");
+					return;
+				}
+				
+				var gridList:ArrayCollection = ArrayCollection(gridConsumo.dataProvider);
+				for(var i:int=0; i < gridList.length; i++){
+					var fa:FamiliaBean = FamiliaBean(familiaCBX.selectedItem);
+					var gl:ConsumoCombustivelBean = ConsumoCombustivelBean(gridList.getItemAt(i));
+					if((gl.idFamilia == fa.id) && (cc.id==0 || isNaN(cc.id))){
+						Alert.show("Já existe uma configuração de consumo para essa família de máquinas");
+						return;
+					}
+				}
+				
+//				
+//				for(var i:int = 0; i<gridList.length ; i++){
+//					if(((FamiliaBean(familiaCBX.selectedItem).id) == ConsumoCombustivelBean(gridList.getItemAt(i)).idFamilia) && (cc.id == 0)){
+//						Alert.show("Já existe uma configuração de consumo para essa família de máquinas");
+//						return;
+//					}
+//				}
+				
+				if (minPorcentagemBaixo.value > maxPorcentagemBaixo.value){
+					Alert.show("Valor Mínimo da Porcentagem Baixa não pode ser maior do que a Máxima!");
+					return;
+				}
+				if (maxPorcentagemBaixo.value > minPorcentagemMedio.value){
+					Alert.show("Valor Máximo da Porcentagem Baixa não pode ser maior do que a Mínima Média!");
+					return;
+				}
+				if (minPorcentagemMedio.value > maxPorcentagemMedio.value){
+					Alert.show("Valor Mínimo da Porcentagem Média não pode ser maior do que a Máxima!");
+					return;
+				}
+				if (maxPorcentagemMedio.value > minPorcentagemAlto.value){
+					Alert.show("Valor Máximo da Porcentagem Média não pode ser maior do que a Mínima Alta!");
+					return;
+				}
+				if (minPorcentagemAlto.value > minPorcentagemAlto.value){
+					Alert.show("Valor Mínimo da Porcentagem Alta não pode ser maior do que a Máxima!");
+					return;		
+				}
+				cc.idFamilia = FamiliaBean(familiaCBX.selectedItem).id;
+				cc.maxPorcentagemAlta = maxPorcentagemAlto.value;
+				cc.maxPorcentagemBaixa = maxPorcentagemBaixo.value;
+				cc.maxPorcentagemMedia = maxPorcentagemMedio.value;
+				cc.minPorcentagemAlta = minPorcentagemAlto.value;
+				cc.minPorcentagemBaixa = minPorcentagemBaixo.value;
+				cc.minPorcentagemMedia = minPorcentagemMedio.value;
+				serviceController.saveOrUpdateConsumo(cc);
+			}
+			
+			
+			private function novo():void
+			{
+				cc = new ConsumoCombustivelBean();
+				minPorcentagemBaixo.value = 0;
+				maxPorcentagemBaixo.value = 0;
+				minPorcentagemMedio.value = 0;
+				maxPorcentagemMedio.value = 0;
+				minPorcentagemAlto.value = 0;
+				maxPorcentagemAlto.value = 0;
+				familiaCBX.selectedIndex = -1;
+				//serviceController.findAllCadastrarFmi(lc.id);
+			}
+			
+			private function onResultFindAllFamilia(event:ResultEvent):void{
+				familiaCBX.dataProvider = ArrayCollection(event.result);
+			}
+			
+			private function onResultFindAllConsumo(event:ResultEvent):void{
+				gridConsumo.dataProvider = ArrayCollection(event.result);
+			}
+			
+			private function onResultSaveConsumo(event:ResultEvent):void{
+				cc = ConsumoCombustivelBean(event.result);
+				if(cc != null){
+					Alert.show("Configuração de Consumo Salvo com Sucesso", "Alerta");
+					serviceController.findAllConsumo();
+					return;
+				}
+			}
+			
+			
+
+			protected function familiaCBX_changeHandler(event:ListEvent):void
+			{
+				cc = new ConsumoCombustivelBean();
+			}
+
+		]]>
+	</mx:Script>
+	<mx:RemoteObject destination="service" invoke="{ProgressBarHelper.openProgressBar(this)}" id="serviceController" showBusyCursor="true" fault="{ProgressBarHelper.erro(event,urlLogin);ProgressBarHelper.removeProgressBar();}">
+		<mx:method name="findAllFamilia" result="onResultFindAllFamilia(event)" />
+		<mx:method name="findAllConsumo" result="onResultFindAllConsumo(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="saveOrUpdateConsumo" result="onResultSaveOrUpdateConsumo(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="removerConsumo" result="onResultRemoverConsumo(event);ProgressBarHelper.removeProgressBar()" />
+	</mx:RemoteObject>
+	
+	<mx:ApplicationControlBar x="0" y="0"  width="100%" horizontalAlign="center">
+		<mx:Label text="Consumo Combustível" fontWeight="bold"/>
+	</mx:ApplicationControlBar>
+	<mx:DataGrid x="0" y="243" width="100%" height="100%" id="gridConsumo" doubleClickEnabled="true" doubleClick="editConsumo()">
+		<mx:columns>
+			<mx:DataGridColumn headerText="Família" dataField="familia"/>
+			<mx:DataGridColumn headerText="Baixo" dataField="baixo" />
+			<mx:DataGridColumn headerText="Médio" dataField="medio"/>
+			<mx:DataGridColumn headerText="Alto" dataField="alto"/>
+			<mx:DataGridColumn headerText="Excluir" >
+				<mx:itemRenderer> 
+					<mx:Component>
+						<mx:VBox verticalGap="2" horizontalAlign="center">
+							<mx:Image source="img/remover.png" width="15" buttonMode="true" height="15" click="{dispatchEvent(new Event('REMOVERCONSUMO', true))}"/>
+						</mx:VBox>
+					</mx:Component> 
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:HBox x="0" y="37" width="100%" horizontalAlign="center" >
+		<mx:VBox height="100%">
+			<mx:Form> 
+				<mx:Form> 
+					<mx:FormItem label="Familia" required="true" width="100%">
+						<mx:ComboBox id="familiaCBX" labelField="descricao" selectedIndex="-1" prompt="Selecione" change="familiaCBX_changeHandler(event)"></mx:ComboBox>
+					</mx:FormItem>
+					<mx:HBox horizontalAlign="center" width="296">
+						
+						<mx:FormItem label="Baixo %" required="true">
+							<mx:NumericStepper id="minPorcentagemBaixo" minimum="0" maximum="100" maxChars="3" toolTip="Inclua a porcentagem mínima para a realizar a manutenção."/>
+						</mx:FormItem>
+						<mx:FormItem width="24" height="17">
+							<mx:Label text="á" width="10"/>
+						</mx:FormItem>
+						<mx:FormItem>					
+							<mx:NumericStepper id="maxPorcentagemBaixo" minimum="0" maximum="100" maxChars="3" toolTip="Inclua a porcentagem maxíma para a realizar a manutenção."/>
+						</mx:FormItem>
+						<mx:FormItem>					
+							<mx:Label text="%"/>
+						</mx:FormItem>
+						
+					</mx:HBox>
+					<mx:HBox horizontalAlign="center">
+						
+						<mx:FormItem label="Médio %" required="true">
+							<mx:NumericStepper id="minPorcentagemMedio" minimum="0" maximum="100" maxChars="3" toolTip="Inclua a porcentagem mínima para a realizar a manutenção."/>
+						</mx:FormItem>
+						<mx:FormItem width="24" height="17">
+							<mx:Label text="á" width="10"/>
+						</mx:FormItem>
+						<mx:FormItem>					
+							<mx:NumericStepper id="maxPorcentagemMedio" minimum="0" maximum="100" maxChars="3" toolTip="Inclua a porcentagem maxíma para a realizar a manutenção."/>
+						</mx:FormItem>
+						<mx:FormItem>					
+							<mx:Label text="%"/>
+						</mx:FormItem>
+						
+					</mx:HBox>
+					<mx:HBox horizontalAlign="center" width="303">
+						
+						<mx:FormItem label="Alto %" required="true">
+							<mx:NumericStepper id="minPorcentagemAlto" minimum="0" maximum="100" maxChars="3" toolTip="Inclua a porcentagem mínima para a realizar a manutenção."/>
+						</mx:FormItem>
+						<mx:FormItem width="24" height="17">
+							<mx:Label text="á" width="10"/>
+						</mx:FormItem>
+						<mx:FormItem>					
+							<mx:NumericStepper id="maxPorcentagemAlto" minimum="0" maximum="100" maxChars="3" toolTip="Inclua a porcentagem maxíma para a realizar a manutenção."/>
+						</mx:FormItem>
+						<mx:FormItem>					
+							<mx:Label text="%"/>
+						</mx:FormItem>
+						
+					</mx:HBox>
+					<mx:HBox width="100%" horizontalAlign="center">
+						<mx:Button label="Salvar" click="salvarConsumo()"/>
+						<mx:Button label="Novo" click="novo()"/>
+					</mx:HBox>
+				</mx:Form>
+			</mx:Form>
+		</mx:VBox>
+	</mx:HBox>
+</mx:Canvas>

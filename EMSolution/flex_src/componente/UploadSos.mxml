@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%">
+	
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.rpc.events.ResultEvent;
+			import util.ProgressBarHelper;
+			import bean.UsuarioBean;
+			private var urlLogin:String;
+			private var uploadFile: FileReference;
+			private var filtro:FileFilter = new FileFilter("Selecione o Arquivo(*.txt;)", "*.txt;");
+			
+			public function init(urlLogin:String):void{
+				this.urlLogin = urlLogin;
+				serviceController.findAllArquivoSos();
+			}
+			
+			private function upload():void {
+				
+				if(analiseCbx.selectedIndex == -1){
+					Alert.show("Seleciole o Tipo de Análise!", "Alerta");
+					return;
+				}
+				
+				/* Inicializa o FileReference a adicinar os Listeners */
+				uploadFile = new FileReference();
+				uploadFile.browse([filtro]);
+				uploadFile.addEventListener(Event.SELECT, tratarArquivoSelecionado);
+				uploadFile.addEventListener(Event.COMPLETE, tratarArquivoDetalhes);
+			}
+			private function tratarArquivoSelecionado(event:Event):void {
+				/* Este metodo LOAD, foi implementado na versao do FP 10,
+				* é graças a ele que conseguimos recuperar o ByteArray e enviar para o Server */
+				uploadFile.load();
+			}
+			
+			private function tratarArquivoDetalhes(event:Event):void {
+				/* Pega a referencia do FileReference */
+				uploadFile = event.currentTarget as FileReference;
+				
+				/* Variavel para armazenar o ByteArray */
+				var data:ByteArray = new ByteArray();
+				
+				/* 'readBytes' é responsavel por ler logicamente os dados do FileReference
+				* e repassar o valor do ByteArray do arquivo para a variavel armazenadora 'DATA' */
+				uploadFile.data.readBytes(data, 0, uploadFile.data.length);
+				var nomeArquivo:String = uploadFile.name;
+				
+				serviceController.fazerUploadSosTxt(data,analiseCbx.selectedItem.data, nomeArquivo);
+			}
+			
+			
+			private function onResultfazerUploadSosTxt(event:ResultEvent):void{
+				if(Boolean(event.result) == true){
+					Alert.show("Envio Realizado!", "Alerta");
+				}else{
+					Alert.show("Não foi possível Enviar o arquivo", "Alerta");
+					
+				}
+			}
+			private function onResultFindAllArquivoSos(event:ResultEvent):void{
+				gridUpload.dataProvider = ArrayCollection(event.result);
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:ArrayCollection id="comboTipo">
+		<mx:Object label="Análise de Óleo" data="AO" />
+		<mx:Object label="Líquido de Arrefecimento" data="LR" />
+	</mx:ArrayCollection>
+	
+	<mx:ApplicationControlBar width="100%" horizontalAlign="center">
+		<mx:Label text="Upload SOS" fontWeight="bold"/>
+	</mx:ApplicationControlBar>
+	
+	<mx:VBox  width="100%" y="60" horizontalAlign="center">
+		<mx:VBox  width="40%" y="60" horizontalAlign="center" verticalAlign="middle">
+			<mx:FormItem label="Tipo de Análise" required="true" id="tipoAnalise" includeInLayout="true" visible="true">
+				<mx:ComboBox editable="true" id="analiseCbx" dataProvider="{comboTipo}" labelField="label" prompt="Selecione"></mx:ComboBox>
+			</mx:FormItem>
+			<mx:Button label="Upload" click=" upload()"/>
+		</mx:VBox>
+	</mx:VBox>
+	
+	
+	<mx:RemoteObject destination="service" invoke="{ProgressBarHelper.openProgressBar(this)}" id="serviceController" showBusyCursor="true" fault="ProgressBarHelper.erro(event, urlLogin);ProgressBarHelper.removeProgressBar()">
+		<mx:method name="fazerUploadSosTxt" result="onResultfazerUploadSosTxt(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="findAllArquivoSos" result="onResultFindAllArquivoSos(event);ProgressBarHelper.removeProgressBar()" />
+	</mx:RemoteObject>	
+	<mx:DataGrid y="146" width="100%" height="100%" id="gridUpload" doubleClickEnabled="true">
+		<mx:columns>
+			<mx:DataGridColumn headerText="Nome do Arquivo" dataField="nomeArquivo"/>
+			<mx:DataGridColumn headerText="Data" dataField="data"/>
+			<mx:DataGridColumn headerText="ID do Funcionário" dataField="idFuncionario"/>
+			<mx:DataGridColumn headerText="Tipo da Análise" dataField="tipoAnalise"/>
+		</mx:columns>
+	</mx:DataGrid>
+</mx:Canvas>

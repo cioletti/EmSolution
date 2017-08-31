@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%">
+	<mx:Script>
+		<![CDATA[
+			import bean.CadastrarFmiBean;
+			import bean.ConfigAlarmeBean;
+			import bean.TipoAlarmeBean;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.ListEvent;
+			import mx.events.ValidationResultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.validators.Validator;
+			
+			import util.ProgressBarHelper;
+			private var urlLogin:String;
+			private var myValidators: Array;
+			private var ca:ConfigAlarmeBean = new ConfigAlarmeBean();
+			public function init(urlLogin:String):void{
+				myValidators = new Array();
+				myValidators.push(campoAlarme);		
+				myValidators.push(campoCodigo);		
+				myValidators.push(campoEvento);		
+				myValidators.push(campoCompartimento);		
+				myValidators.push(campoCausas);		
+				myValidators.push(campoSos);		
+				myValidators.push(campoPmTa);		
+				myValidators.push(campoAcoes);		
+				this.urlLogin = urlLogin;
+				gridConfigAlarme.addEventListener("REMOVERCONFIGALARME", removerConfigAlarme);
+				//serviceController.findAllCadastrarFmi();
+				serviceController.findAllTipoAlarme();
+				
+					
+			}
+			private function onResultFindAllTipoAlarme(event:ResultEvent): void{
+				tipoAlarmeCbx.dataProvider = ArrayCollection(event.result);
+				serviceController.findAllCadastrarFmi();
+				
+			}
+			private function onResultFindAllCadastrarFmi(event:ResultEvent): void{
+				fmiCbx.dataProvider = ArrayCollection(event.result);
+				
+			}
+			private function removerConfigAlarme(ev: Event): void{
+				serviceController.removerConfigAlarme(ConfigAlarmeBean(gridConfigAlarme.selectedItem));
+			}
+			
+			private function novo():void{
+				ca = new ConfigAlarmeBean();
+				codigoTipoFalhaText.text = "";
+				tipoAlarmeCbx.selectedIndex = -1;
+				codigoEidText.text = "";
+				fmiCbx.selectedIndex = -1;
+				codigoText.text = "";
+				eventoDiagnosticoText.text = "";
+				compartimentoText.text = "";
+				possiveisCausasText.text = "";
+				sosText.text = "";
+				pmTaText.text = "";
+				acoesRecomendadasText.text = "";
+			}
+
+			private function onResultSaveOrUpdateConfigAlarme(event:ResultEvent):void{
+				if(event.result == null){
+					Alert.show("Erro ao tentar salvar configuração de alarme!","Alerta");
+					return;
+				}
+				Alert.show("Salvo com sucesso!","Alerta");
+				serviceController.findAllConfigAlarme(TipoAlarmeBean(tipoAlarmeCbx.selectedItem).id);
+			}
+			private function onResultRemoverConfigAlarme(event:ResultEvent):void{
+				if(event.result == false){
+					Alert.show("Erro ao tentar remover tipo de tração!","Alerta");
+					return;
+				}
+				Alert.show("Removido com sucesso!","Alerta");
+				serviceController.findAllConfigAlarme(TipoAlarmeBean(tipoAlarmeCbx.selectedItem).id);
+			}
+			
+			private function editConfigAlarme():void{
+				if(gridConfigAlarme.selectedItem!= null){
+					ca = ConfigAlarmeBean(gridConfigAlarme.selectedItem);
+					this.selectedTipoAlarme();
+					
+					
+					fmiForm.visible = true;
+					fmiForm.includeInLayout = true;
+					codigoTipoFalhaForm.visible = true;
+					codigoTipoFalhaForm.includeInLayout = true;
+					if(TipoAlarmeBean(tipoAlarmeCbx.selectedItem).descricao == 'MID - EID'){
+						fmiForm.visible = false;
+						fmiForm.includeInLayout = false;
+						codigoTipoFalhaForm.visible = false;
+						codigoTipoFalhaForm.includeInLayout = false;
+						codigoEidText.text = String(ca.codigoEid);
+						codigoTipoFalhaText.text = "";
+					}else{
+						this.selectedFmi();
+						codigoEidText.text = "";
+						codigoTipoFalhaText.text = String(ca.codigoCid);
+					}
+					
+					codigoText.text = ca.codigo;
+					eventoDiagnosticoText.text = ca.eventoDiagnostico;
+					compartimentoText.text = ca.compartimento;
+					possiveisCausasText.text = ca.possiveisCausas;
+					sosText.text = ca.indicadoresSos;
+					pmTaText.text = ca.pmTa;
+					acoesRecomendadasText.text = ca.acoesRecomendadas;
+				}
+			}
+			
+			private function salvarConfigAlarmeBean():void{
+				var validatorErrorArray:Array = Validator.validateAll(myValidators);;
+				var isValidForm:Boolean = validatorErrorArray.length == 0;
+				
+				if (isValidForm) {
+					if(TipoAlarmeBean(tipoAlarmeCbx.selectedItem).descricao == 'MID - CID - FMI'){
+						if(fmiCbx.selectedIndex == -1){
+							Alert.show("O campo Código FMI é obrigatório!", "Alerta");
+							return;
+						}
+						ca.codigoCid = Number(codigoTipoFalhaText.text);
+						ca.codigoFmi = 	fmiCbx.selectedItem.codigo;
+					}else{
+						ca.codigoEid = Number(codigoEidText.text);
+					}
+					ca.idTipoAlarme = TipoAlarmeBean(tipoAlarmeCbx.selectedItem).id;
+					ca.codigo = codigoText.text;
+					ca.eventoDiagnostico = eventoDiagnosticoText.text;
+					ca.compartimento = compartimentoText.text;
+					ca.possiveisCausas = possiveisCausasText.text;
+					ca.indicadoresSos = sosText.text;
+					ca.pmTa = pmTaText.text;
+					ca.acoesRecomendadas = acoesRecomendadasText.text;
+					serviceController.saveOrUpdateCodigoAlarme(ca);		
+				}else {
+					var err:ValidationResultEvent;
+					var errorMessageArray:Array = [];
+					for each (err in validatorErrorArray) {
+						var errField:String = FormItem(err.currentTarget.source.parent).label
+						errorMessageArray.push(errField + ": Este campo é obrigatório.");
+					}
+					Alert.show(errorMessageArray.join("\n\n"), "Invalid form...", Alert.OK);
+				}
+			}
+			
+
+			protected function tipoAlarmeCbx_changeHandler(event:ListEvent):void
+			{
+				fmiForm.visible = true;
+				fmiForm.includeInLayout = true;
+				codigoTipoFalhaForm.visible = true;
+				codigoTipoFalhaForm.includeInLayout = true;
+				eidForm.visible = false;
+				eidForm.includeInLayout = false;
+				if(TipoAlarmeBean(tipoAlarmeCbx.selectedItem).descricao == 'MID - EID'){
+					fmiForm.visible = false;
+					fmiForm.includeInLayout = false;
+					codigoTipoFalhaForm.visible = false;
+					codigoTipoFalhaForm.includeInLayout = false;
+					eidForm.visible = true;
+					eidForm.includeInLayout = true;
+				}
+				ca = new ConfigAlarmeBean();
+				codigoText.text = "";
+				codigoEidText.text = "";
+				fmiCbx.selectedIndex = -1;
+				codigoText.text = "";
+				eventoDiagnosticoText.text = "";
+				compartimentoText.text = "";
+				possiveisCausasText.text = "";
+				sosText.text = "";
+				pmTaText.text = "";
+				acoesRecomendadasText.text = "";
+				serviceController.findAllConfigAlarme(TipoAlarmeBean(tipoAlarmeCbx.selectedItem).id);
+			}
+			
+			private function onResultFindAllConfigAlarme(event:ResultEvent):void{
+				gridConfigAlarme.dataProvider = ArrayCollection(event.result);
+			}
+			
+			private function selectedTipoAlarme():void{
+				var taList:ArrayCollection = ArrayCollection(tipoAlarmeCbx.dataProvider);
+				for(var i:int=0; i < taList.length; i++){
+					var ta:TipoAlarmeBean = TipoAlarmeBean(taList.getItemAt(i));
+					if(ca.idTipoAlarme == ta.id){
+						tipoAlarmeCbx.selectedIndex = i;
+						break;
+					}
+				}
+			}
+			private function selectedFmi():void{
+				var fmiList:ArrayCollection = ArrayCollection(fmiCbx.dataProvider);
+				for(var i:int=0; i < fmiList.length; i++){
+					var fmi:CadastrarFmiBean = CadastrarFmiBean(fmiList.getItemAt(i));
+					if(ca.codigoFmiStr == String(fmi.codigo)){
+						fmiCbx.selectedIndex = i;
+						break;
+					}
+				}
+			}
+
+		]]>
+	</mx:Script>
+	<mx:NumberValidator id="campoAlarme" source="{tipoAlarmeCbx}" lowerThanMinError="Este campo  obrigatório." property="selectedIndex" minValue="0" />
+	<mx:StringValidator id="campoCodigo" requiredFieldError="Este campo é obrigatório!" required="true" source="{codigoText}" property="text" />
+	<mx:StringValidator id="campoEvento" requiredFieldError="Este campo é obrigatório!" required="true" source="{eventoDiagnosticoText}" property="text" />
+	<mx:StringValidator id="campoCompartimento" requiredFieldError="Este campo é obrigatório!" required="true" source="{compartimentoText}" property="text" />
+	<mx:StringValidator id="campoCausas" requiredFieldError="Este campo é obrigatório!" required="true" source="{possiveisCausasText}" property="text" />
+	<mx:StringValidator id="campoSos" requiredFieldError="Este campo é obrigatório!" required="true" source="{sosText}" property="text" />
+	<mx:StringValidator id="campoPmTa" requiredFieldError="Este campo é obrigatório!" required="true" source="{pmTaText}" property="text" />
+	<mx:StringValidator id="campoAcoes" requiredFieldError="Este campo é obrigatório!" required="true" source="{acoesRecomendadasText}" property="text" />
+	<mx:RemoteObject destination="service" invoke="{ProgressBarHelper.openProgressBar(this)}" id="serviceController" showBusyCursor="true" fault="{ProgressBarHelper.erro(event,urlLogin);ProgressBarHelper.removeProgressBar();}">
+		<mx:method name="saveOrUpdateCodigoAlarme" result="onResultSaveOrUpdateConfigAlarme(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="findAllTipoAlarme" result="onResultFindAllTipoAlarme(event)" />
+		<mx:method name="removerConfigAlarme" result="onResultRemoverConfigAlarme(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="findAllConfigAlarme" result="onResultFindAllConfigAlarme(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="findAllCadastrarFmi" result="onResultFindAllCadastrarFmi(event);ProgressBarHelper.removeProgressBar()" />
+	</mx:RemoteObject>
+	
+	<mx:ApplicationControlBar x="0" y="0"  width="100%" horizontalAlign="center">
+		<mx:Label text="Configuração de Alarme" fontWeight="bold"/>
+	</mx:ApplicationControlBar>
+	<mx:DataGrid x="0" y="311" width="100%" height="100%" id="gridConfigAlarme" doubleClickEnabled="true" doubleClick="editConfigAlarme()">
+		<mx:columns>
+			<mx:DataGridColumn headerText="Tipo Alarme" dataField="descTipoAlarme"/>
+			<mx:DataGridColumn headerText="Código Componente MID" dataField="codigo"/>
+			<mx:DataGridColumn headerText="Código da Falha CID" dataField="codigoCidStr"/>
+			<mx:DataGridColumn headerText="FMI" dataField="descFmi"/>
+			<mx:DataGridColumn headerText="Evento EID" dataField="codigoEidStr"/>
+			<mx:DataGridColumn headerText="Excluir">
+				<mx:itemRenderer> 
+					<mx:Component>
+						<mx:VBox verticalGap="2" horizontalAlign="center">
+							<mx:Image source="img/remover.png" width="15" buttonMode="true" height="15" click="{dispatchEvent(new Event('REMOVERCONFIGALARME', true))}"/>
+						</mx:VBox>
+					</mx:Component> 
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:HBox x="0" y="37" width="100%" horizontalAlign="center">
+		<mx:VBox height="100%">
+			<mx:Form> 
+				<mx:FormItem label="Tipo Alarme" required="true">
+					<mx:ComboBox id="tipoAlarmeCbx" prompt="Selecione" change="tipoAlarmeCbx_changeHandler(event)" labelField="descricao"></mx:ComboBox>
+				</mx:FormItem>
+				<mx:FormItem label="Código Componente MID" required="true">
+					<mx:TextInput id="codigoText" maxChars="20" restrict="0-9"/>
+				</mx:FormItem>
+				<mx:FormItem label="Código Evento EID" required="true" id="eidForm">
+					<mx:TextInput id="codigoEidText" maxChars="20" restrict="0-9"/>
+				</mx:FormItem>
+				<mx:FormItem label="Código Tipo Falha CID" required="true" id="codigoTipoFalhaForm" includeInLayout="false" visible="false">
+					<mx:TextInput id="codigoTipoFalhaText" maxChars="20" restrict="0-9"/>
+				</mx:FormItem>
+				<mx:FormItem label="Código FMI" required="true" id="fmiForm" includeInLayout="false" visible="false">
+					<mx:ComboBox id="fmiCbx" prompt="Selecione"  labelField="descricao"></mx:ComboBox>
+				</mx:FormItem>
+				<mx:FormItem label="Evento e Diagnóstico" required="true">
+					<mx:TextArea id="eventoDiagnosticoText"/>
+				</mx:FormItem>
+				<mx:FormItem label="Compartimento" required="true">
+					<mx:TextArea id="compartimentoText"/>
+				</mx:FormItem>
+				<!--mx:FormItem label="Tipo Tração" required="true">
+					<mx:ComboBox id="tipoTracaoCbx" labelField="descricao" />
+				</mx:FormItem-->
+			</mx:Form>
+		</mx:VBox>
+		<mx:VBox height="100%">
+			<mx:Form> 
+				<mx:FormItem label="Possíveis Causas" required="true">
+					<mx:TextArea id="possiveisCausasText" height="100"/>
+				</mx:FormItem>
+				<mx:FormItem label="Indicadores SOS" required="true">
+					<mx:TextArea id="sosText"/>
+				</mx:FormItem>
+			</mx:Form>
+		</mx:VBox>
+		<mx:Form> 
+			<mx:FormItem label="PM e TA" required="true">
+				<mx:TextArea id="pmTaText"/>
+			</mx:FormItem>
+			<mx:FormItem label="Ações Recomendadas" required="true">
+				<mx:TextArea id="acoesRecomendadasText" height="100"/>
+			</mx:FormItem>
+		</mx:Form>
+	</mx:HBox>
+	<mx:HBox width="100%" x="-1" y="281" horizontalAlign="center">
+		<mx:Button label="Salvar" click="salvarConfigAlarmeBean()"/>
+		<mx:Button label="Novo" click="novo()"/>
+	</mx:HBox>
+	
+</mx:Canvas>

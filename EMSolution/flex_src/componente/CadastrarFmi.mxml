@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%">
+	<mx:Script>
+		<![CDATA[
+			import bean.CadastrarFmiBean;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.ValidationResultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.validators.Validator;
+			
+			import util.ProgressBarHelper;
+			private var urlLogin:String;
+			private var myValidators: Array;
+			private var lc:CadastrarFmiBean = new CadastrarFmiBean();
+			public function init(urlLogin:String):void{
+				myValidators = new Array();
+				myValidators.push(campoCodigo);				
+				myValidators.push(campoDescricao);				
+				this.urlLogin = urlLogin;
+				gridCadastrarFmi.addEventListener("REMOVERCADASTRARFMI", removerCadastrarFmi);
+				serviceController.findAllCadastrarFmi();
+				
+			}
+			private function removerCadastrarFmi(ev:Event): void{
+				serviceController.removerCadastrarFmi(CadastrarFmiBean(gridCadastrarFmi.selectedItem));
+			}
+
+			private function onResultSaveOrUpdateCadastrarFmi(event:ResultEvent):void{
+				if(event.result == null){
+					Alert.show("Erro ao tentar salvar configuração de alarme!","Alerta");
+					return;
+				}
+				Alert.show("Salvo com sucesso!","Alerta");
+				serviceController.findAllCadastrarFmi();
+			}
+			private function onResultRemoverCadastrarFmi(event:ResultEvent):void{
+				if(event.result == false){
+					Alert.show("Erro ao tentar remover tipo de tração!","Alerta");
+					return;
+				}
+				Alert.show("Removido com sucesso!","Alerta");
+				serviceController.findAllCadastrarFmi();
+			}
+			
+			private function editCadastrarFmi():void{
+				if(gridCadastrarFmi.selectedItem!= null){
+					lc = CadastrarFmiBean(gridCadastrarFmi.selectedItem);
+					CodigoText.text = String(lc.codigo);
+					DescricaoText.text = lc.descricao;
+				
+				}
+			}
+			
+			private function salvarCadastrarFmiBean():void{
+				var validatorErrorArray:Array = Validator.validateAll(myValidators);;
+				var isValidForm:Boolean = validatorErrorArray.length == 0;
+				
+				if (isValidForm) {
+					lc.codigo = Number(CodigoText.text);
+					lc.descricao = DescricaoText.text;
+					serviceController.saveOrUpdateCadastrarFmi(lc);		
+				}else {
+					var err:ValidationResultEvent;
+					var errorMessageArray:Array = [];
+					for each (err in validatorErrorArray) {
+						var errField:String = FormItem(err.currentTarget.source.parent).label
+						errorMessageArray.push(errField + ": Este campo é obrigatório.");
+					}
+					Alert.show(errorMessageArray.join("\n\n"), "Invalid form...", Alert.OK);
+				}
+			}
+			
+
+			protected function novo():void
+			{
+				lc = new CadastrarFmiBean();
+				CodigoText.text = "";
+				DescricaoText.text = "";
+				//serviceController.findAllCadastrarFmi(lc.id);
+			}
+			
+			private function onResultFindAllCadastrarFmi(event:ResultEvent):void{
+				gridCadastrarFmi.dataProvider = ArrayCollection(event.result);
+			}
+		
+
+		]]>
+	</mx:Script>
+	<mx:StringValidator id="campoCodigo" requiredFieldError="Este campo é obrigatório!" required="true" source="{CodigoText}" property="text" />
+	<mx:StringValidator id="campoDescricao" requiredFieldError="Este campo é obrigatório!" required="true" source="{DescricaoText}" property="text" />
+	<mx:RemoteObject destination="service" invoke="{ProgressBarHelper.openProgressBar(this)}" id="serviceController" showBusyCursor="true" fault="{ProgressBarHelper.erro(event,urlLogin);ProgressBarHelper.removeProgressBar();}">
+		<mx:method name="saveOrUpdateCadastrarFmi" result="onResultSaveOrUpdateCadastrarFmi(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="findAllCadastrarFmi" result="onResultFindAllCadastrarFmi(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="removerCadastrarFmi" result="onResultRemoverCadastrarFmi(event);ProgressBarHelper.removeProgressBar()" />
+	</mx:RemoteObject>
+	
+	<mx:ApplicationControlBar x="0" y="0"  width="100%" horizontalAlign="center">
+		<mx:Label text="Cadastrar FMI" fontWeight="bold"/>
+	</mx:ApplicationControlBar>
+	<mx:DataGrid x="0" y="145" width="100%" height="507" id="gridCadastrarFmi" doubleClickEnabled="true" doubleClick="editCadastrarFmi()">
+		<mx:columns>
+			<mx:DataGridColumn headerText="Codigo" dataField="codigo"/>
+			<mx:DataGridColumn headerText="Descrição" dataField="descricao" />
+			<mx:DataGridColumn headerText="Excluir" >
+				<mx:itemRenderer> 
+					<mx:Component>
+						<mx:VBox verticalGap="2" horizontalAlign="center">
+							<mx:Image source="img/remover.png" width="15" buttonMode="true" height="15" click="{dispatchEvent(new Event('REMOVERCADASTRARFMI', true))}"/>
+						</mx:VBox>
+					</mx:Component> 
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:HBox x="0" y="37" width="100%" horizontalAlign="center" >
+		<mx:VBox height="100%">
+			<mx:Form> 
+				<mx:FormItem label="Codigo" required="true" >
+					<mx:TextInput id="CodigoText"/>
+				</mx:FormItem>
+				<mx:FormItem label="Descrição" required="true" >
+					<mx:TextInput id="DescricaoText" maxChars="100"/>
+				</mx:FormItem>
+				<mx:HBox width="100%" horizontalAlign="center">
+					<mx:Button label="Salvar" click="salvarCadastrarFmiBean()"/>
+					<mx:Button label="Novo" click="novo()"/>
+				</mx:HBox>
+			</mx:Form>
+		</mx:VBox>
+	</mx:HBox>
+	
+</mx:Canvas>

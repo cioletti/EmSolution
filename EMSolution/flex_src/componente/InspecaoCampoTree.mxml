@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModuleTitleWindow  title="Árvore de Inspeção Campo" xmlns="util.*" xmlns:mx="http://www.adobe.com/2006/mxml" width="1042" height="516" alpha="0.97" cornerRadius="4"  xmlns:componente="componente.*">
+	<mx:Script>
+		<![CDATA[
+			import bean.InspecaoCampoTreeBean;
+			import bean.InspecaoPmpBean;
+			
+			import mx.collections.ArrayCollection;
+			import mx.core.IFlexDisplayObject;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			
+			import util.ProgressBarHelper;
+			
+			private var urlReport:String;
+			private var urlLogin:String;
+			private var myValidators:Array;
+			public var inspecaoCampoFotos: InspecaoCampoFotos;
+			private var idOsPalm:Number;
+			private var urlImg:String;
+			private var inspecaoCampo:InspecaoPmpBean = new InspecaoPmpBean();
+						
+			public var clienteDados:ArrayCollection = new ArrayCollection();
+			public var osDados:ArrayCollection = new ArrayCollection();
+			public var maquinaDados:ArrayCollection = new ArrayCollection();	
+							
+			public function init():void{		
+				myValidators = new Array();
+				montaCabecalho();				
+				serviceController.findAllInspencaoCampoTree(inspecaoCampo.id);
+				serviceController.getUrlReportCampoInspecao();
+			}
+			
+			[Bindable]
+			private var dataList:ArrayCollection = new ArrayCollection();
+			private function onResultFindAllInspencaoCampoTree(event:ResultEvent):void{
+				dataList.addAll(ArrayCollection(event.result));
+			}
+			
+			public function montaCabecalho():void{
+				
+				var nomeCliente:Object = new Object();
+				nomeCliente.name = "Nome:     " + inspecaoCampo.cliente;
+				clienteDados.addItem(nomeCliente);
+				
+				var contatoCliente:Object = new Object();
+				contatoCliente.name = "Contato:  " + inspecaoCampo.contato;
+				clienteDados.addItem(contatoCliente);
+				
+				var telefoneCliente:Object = new Object();
+				telefoneCliente.name = "Telefone: " + inspecaoCampo.telefone;
+				clienteDados.addItem(telefoneCliente);
+				
+				gridCliente.dataProvider = clienteDados;
+				
+				var numOs:Object = new Object();
+				numOs.name = "Núm. OS: " + inspecaoCampo.numeroOs;
+				osDados.addItem(numOs);
+				
+				var dataOs:Object = new Object();
+				dataOs.name = "Data:       " + inspecaoCampo.emissao;
+				osDados.addItem(dataOs);				
+				
+				var tecnicoOs:Object = new Object();
+				tecnicoOs.name = "Técnico:   " + inspecaoCampo.tecnico;
+				osDados.addItem(tecnicoOs);				
+				
+				gridOs.dataProvider = osDados;
+				
+				var modeloMaquina:Object = new Object();
+				modeloMaquina.name = "Modelo:      " + inspecaoCampo.modelo;
+				maquinaDados.addItem(modeloMaquina);
+				
+				var serieMaquina:Object = new Object();
+				serieMaquina.name = "Núm. Serie: " + inspecaoCampo.serie;
+				maquinaDados.addItem(serieMaquina);
+				
+				var horimetroMaquina:Object = new Object();
+				horimetroMaquina.name = "Horímetro:   " + inspecaoCampo.horimetro;
+				maquinaDados.addItem(horimetroMaquina);
+				
+				gridMaquina.dataProvider = maquinaDados;
+				
+				familiaDesc.text = inspecaoCampo.familia;
+				maquina.text = inspecaoCampo.modelo;
+			}
+			
+			public function recebeObjeto(idOsPalm:Number, urlLogin:String): void{				
+				serviceController.findInspecaoCampo(idOsPalm);			
+				this.urlLogin = urlLogin;			
+			}
+			
+			private function onResultFindInspecaoCampo(event:ResultEvent):void{
+				this.inspecaoCampo =  InspecaoPmpBean(event.result);
+				this.init();
+				
+				
+			}
+			
+			private function abrirFotos():void{
+				//inspecaoPmpTree = InspecaoPmpTreeBean(gridTree.selectedItem);
+				
+				//inspecaoPmpFotos = new InspecaoPmpFotos();
+				//inspecaoPmpFotos.recebeObjeto(inspecaoPmpTree.);
+				//configuracaoOperacional.addEventListener(CloseEvent.CLOSE, removePopUp);
+				//PopUpManager.addPopUp(configuracaoOperacional, this, true);
+				//PopUpManager.centerPopUp(configuracaoOperacional);
+				//configuracaoOperacional.init(urlLogin);
+			}
+		
+			private function doubleClickGridTree():void{
+				var tree:InspecaoCampoTreeBean = InspecaoCampoTreeBean(gridTree.selectedItem);
+				if(tree.fotoUrlImage != null && tree.fotoUrlImage != ""){
+					this.popupTree(tree.idOsPalmDt);
+				}
+			}
+
+			private var cmFotos:InspecaoCampoFotos;
+			public function popupTree(idOsPalmDt:Number):void{
+				cmFotos = new InspecaoCampoFotos();
+				cmFotos.addEventListener(CloseEvent.CLOSE, removePopUpTree);
+				PopUpManager.addPopUp(cmFotos, this, true);
+				//PopUpManager.centerPopUp(pmFotos)
+				cmFotos.height = 500;
+				cmFotos.width= 1000;
+				cmFotos.init(urlLogin, idOsPalmDt);
+			}
+			
+			private function removePopUpTree(obj:CloseEvent):void{
+				PopUpManager.removePopUp(obj.currentTarget as IFlexDisplayObject);
+			}
+
+			protected function pdf_clickHandler(event:MouseEvent):void
+			{			
+				var uv:URLVariables = new URLVariables();
+				uv.osPalmId = inspecaoCampo.id;
+				uv.equipamento = inspecaoCampo.modelo;
+					
+				var url:URLRequest = new URLRequest(urlReport+"/InspecaoReport");
+				url.method = "POST";
+				url.data = uv;
+				navigateToURL(url,"_blank");
+			}
+			
+			private function onResultGetUrlReportCampoInspecao(event:ResultEvent):void{
+				this.urlReport = String(event.result);
+			}
+			
+//			protected function downloadFotos(event:MouseEvent):void{
+//				
+//				var uv:URLVariables = new URLVariables();
+//					uv.idOsPalm = inspecaoCampo.idOsPalm;
+//					uv.flagImagens = "todas";
+//				
+//					generateZip(uv);
+//			}
+			
+			
+//			public function generateZip(uv:URLVariables):void
+//			{				
+//				var url:URLRequest = new URLRequest(urlReport+"/GetImgInspecao");
+//				url.method = "GET";
+//				url.data = uv;
+//				navigateToURL(url,"_blank");
+//			}
+//			
+//			private function onResultGetUrlImg(event:ResultEvent):void{
+//				this.urlImg = String(event.result);
+//				serviceController.verificaExisteFoto(inspecaoCampo.idOsPalm);
+//				
+//			}
+//			private function onResultVerificaExisteFoto(event:ResultEvent):void{
+//				if(Boolean(event.result) == true){
+//					fotosRar.visible = true;
+//					fotosRar.enabled = true;
+//				}else{
+//					fotosRar.visible = false;
+//					fotosRar.enabled = false;
+//				}
+//				
+//			}
+
+		]]>
+	</mx:Script>
+	
+	<mx:RemoteObject destination="service" invoke="{ProgressBarHelper.openProgressBar(this)}" id="serviceController" showBusyCursor="true" fault="{ProgressBarHelper.erro(event,urlLogin);ProgressBarHelper.removeProgressBar();}">
+		<mx:method name="findAllInspencaoCampoTree" result="onResultFindAllInspencaoCampoTree(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="findInspecaoCampo" result="onResultFindInspecaoCampo(event)" />
+		<!--mx:method name="verificaExisteFoto" result="onResultVerificaExisteFoto(event);ProgressBarHelper.removeProgressBar()" /-->
+		<mx:method name="getUrlReportCampoInspecao" result="onResultGetUrlReportCampoInspecao(event);ProgressBarHelper.removeProgressBar()" />
+	</mx:RemoteObject>
+	
+	<mx:HBox width="95%" verticalAlign="center">
+		<mx:VBox width="466" horizontalAlign="left" verticalAlign="middle" paddingBottom="3" paddingTop="3">
+			<mx:FormItem label="Família: "  width="462">
+				<mx:Text id="familiaDesc"/>
+			</mx:FormItem>
+			<mx:FormItem label="Máquina:" width="462">
+				<mx:Text id="maquina"/>
+			</mx:FormItem>
+		</mx:VBox>
+		
+		<mx:HBox width="529" horizontalAlign="left" verticalAlign="middle" paddingBottom="3" paddingTop="3" height="51">
+			<mx:Image source="img/pdf.png" width="33" id="contratoPdf" click="pdf_clickHandler(event)" buttonMode="true" height="23"/>
+			<!--mx:Image source="img/rar.png" width="33" id="fotosRar" click="downloadFotos(event)" toolTip="Download de Fotos" buttonMode="true" visible="false" enabled="false" height="23"/-->
+		</mx:HBox>
+	</mx:HBox>
+	
+	<mx:HBox width="95%" height="110" paddingBottom="10" paddingLeft="3" paddingRight="3" paddingTop="2">
+		<mx:DataGrid width="280" height="90" id="gridCliente">
+			<mx:columns>
+				<mx:DataGridColumn headerText="Cliente" dataField="name"/>		
+			</mx:columns>
+		</mx:DataGrid>
+	
+		<mx:DataGrid width="400" height="90" id="gridOs" >
+			<mx:columns>
+				<mx:DataGridColumn headerText="Ordem de Serviço" dataField="name"/>		
+			</mx:columns>
+		</mx:DataGrid>	
+		
+		<mx:DataGrid width="300" height="90" id="gridMaquina" >
+			<mx:columns>
+				<mx:DataGridColumn headerText="Máquina" dataField="name"/>		
+			</mx:columns>		
+		</mx:DataGrid>		
+	</mx:HBox>
+		 
+	<mx:VBox width="100%" height="100%" paddingBottom="10" paddingLeft="3" paddingRight="3" paddingTop="2">
+		<mx:AdvancedDataGrid width="100%" height="100%" id="gridTree"    
+		     folderClosedIcon="{null}" 
+			 folderOpenIcon="{null}" 
+			 defaultLeafIcon="{null}" doubleClick="doubleClickGridTree()" doubleClickEnabled="true">	
+				<mx:dataProvider>
+					<mx:HierarchicalData source="{dataList}"/>
+				</mx:dataProvider>
+					<mx:columns>
+						<mx:AdvancedDataGridColumn headerText="Descrição" dataField="descricao"/>
+						<mx:AdvancedDataGridColumn headerText="Status" dataField="status">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:HBox verticalGap="2" horizontalAlign="left" horizontalGap="2">
+										<mx:Image source="{data.statusUrlImage}" width="15" buttonMode="true" height="15"/>
+										<mx:Label text="{data.status}"/>								
+									</mx:HBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:AdvancedDataGridColumn>
+						<mx:AdvancedDataGridColumn headerText="Comentários" dataField="obs"/>
+						<mx:AdvancedDataGridColumn headerText="SMCS" dataField="smcs"/>
+						<mx:AdvancedDataGridColumn headerText="Manutenção" dataField="tipoManutencao"/>
+						<mx:AdvancedDataGridColumn headerText="Fotos">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:Image source="{data.fotoUrlImage}" width="15" buttonMode="true" height="15" />
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:AdvancedDataGridColumn>
+					</mx:columns>
+			</mx:AdvancedDataGrid> 
+	</mx:VBox>
+</ModuleTitleWindow>

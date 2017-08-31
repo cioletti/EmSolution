@@ -1,0 +1,412 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" xmlns:componente="componente.*">
+	<mx:Script>
+		<![CDATA[
+			import bean.DiagnosticoBean;
+			import bean.FilialBean;
+			import bean.SegmentoBean;
+			import bean.UsuarioBean;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.core.IFlexDisplayObject;
+			import mx.events.CloseEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			
+			[Bindable]
+			private var paginaAtual:Number=0;
+			[Bindable]
+			private var totalRegistros:Number;
+			
+			import util.ProgressBarHelper;
+			private var usuarioBean:UsuarioBean;
+			private var urlLogin:String;
+			[bindable]
+			private var dpHierarchy:ArrayCollection = new ArrayCollection();
+			public function init(usuarioBean:UsuarioBean, urlLogin:String):void{
+				this.usuarioBean = usuarioBean;
+				this.urlLogin = urlLogin;
+				diagnosticoDataGrid.addEventListener("CRIARPROPOSTA", criarProposta);
+				segmentoOportunidadeComponente.addEventListener("VOLTAR", resizeCanvas);
+				oportunidadesSegmentosComponente.addEventListener("CRIARSEGMENTO", criarSegmento);
+				diagnosticoDataGrid.addEventListener("HISTORICOOS", historicoOs);
+				diagnosticoDataGrid.addEventListener("LIBERAREQUIPAMENTO", liberarEquipamento);
+				this.findDiagnostic();
+				campoPesquisaTxt.addEventListener(KeyboardEvent.KEY_DOWN,keyPressed);
+				voltarBtn.label = '<<';
+				avancarBtn.label = '>>';
+			}
+			
+			private function findDiagnostic():void{
+				//serviceController.findAllOperacionalByFiltro('S','S','N','S', null, null, inicial, numRegistros);
+				var inicial:Number =  Number(quantidadeCbx.selectedLabel) * paginaAtual;
+				var numRegistros:Number = Number(quantidadeCbx.selectedLabel);
+				serviceController.findDiagnostic(Number(this.usuarioBean.filial), campoPesquisaTxt.text, inicial, numRegistros);
+			}
+			private function findTodosDiagnostic():void{
+				paginaAtual = 0;
+				//serviceController.findAllOperacionalByFiltro('S','S','N','S', null, null, inicial, numRegistros);
+				var inicial:Number =  Number(quantidadeCbx.selectedLabel) * paginaAtual;
+				var numRegistros:Number = Number(quantidadeCbx.selectedLabel);
+				serviceController.findDiagnostic(Number(-1), campoPesquisaTxt.text, inicial, numRegistros);
+			}
+			
+			
+			private var popupHistoricoOs:PopupHistoricoOS;
+			private function historicoOs(ev:Event): void{
+				popupHistoricoOs = new PopupHistoricoOS();
+				popupHistoricoOs.addEventListener(CloseEvent.CLOSE, removeHistoricoOs);
+				PopUpManager.addPopUp(popupHistoricoOs, this, true);
+				PopUpManager.centerPopUp(popupHistoricoOs);
+				popupHistoricoOs.init(DiagnosticoBean(diagnosticoDataGrid.selectedItem).numeroSerie,urlLogin);
+			}
+			private function liberarEquipamento(ev:Event): void{
+				serviceController.liberarEquipamento(DiagnosticoBean(diagnosticoDataGrid.selectedItem).numeroSerie);
+			}
+			
+			private function onResultLiberarEquipamento(event:ResultEvent):void{
+				if(Boolean(event.result) == true){
+					this.findDiagnostic();
+				}else {
+					Alert.show("Não foi possível liberar o equipamento!","Alerta");
+				}
+			}
+			
+			private function removeHistoricoOs(obj:CloseEvent):void{
+				PopUpManager.removePopUp(obj.currentTarget as IFlexDisplayObject);
+			}
+			
+			private function keyPressed(evt:KeyboardEvent):void{				
+				if(evt.keyCode == 13){
+					this.findDiagnostic();				
+				}			
+			}
+			
+			private function resizeCanvas(ev: Event):void
+			{
+				diagnosticoMaquinaVbox.visible = true;
+				diagnosticoMaquinaVbox.includeInLayout = true;
+				
+				segmentoOportunidadeComponente.visible = false;
+				segmentoOportunidadeComponente.includeInLayout = false;
+				this.findDiagnostic();
+			}
+			private function criarSegmento(ev:Event): void{
+				oportunidadesSegmentosComponente.visible = false;
+				oportunidadesSegmentosComponente.includeInLayout = false;
+				
+				segmentoOportunidadeComponente.visible = true;
+				segmentoOportunidadeComponente.includeInLayout = true;
+				segmentoOportunidadeComponente.initNovo(this.urlLogin, this.usuarioBean, oportunidadesSegmentosComponente.propostaBean, oportunidadesSegmentosComponente.segmentoBean);
+				
+			}
+			private var popupTipoOportunidade:PopupTipoOportunidade;
+			private function criarProposta(ev:Event): void{
+				popupTipoOportunidade = new PopupTipoOportunidade();
+				popupTipoOportunidade.addEventListener(CloseEvent.CLOSE, removePopupTipoOportunidade);
+				PopUpManager.addPopUp(popupTipoOportunidade, this, true);
+				PopUpManager.centerPopUp(popupTipoOportunidade);
+				popupTipoOportunidade.init(urlLogin,DiagnosticoBean(diagnosticoDataGrid.selectedItem).numeroSerie, DiagnosticoBean(diagnosticoDataGrid.selectedItem).modelo, this.usuarioBean, DiagnosticoBean(diagnosticoDataGrid.selectedItem).idFilial);
+			}
+			
+			private function removePopupTipoOportunidade(obj:CloseEvent):void{
+				PopUpManager.removePopUp(obj.currentTarget as IFlexDisplayObject);
+				if(popupTipoOportunidade.isConfirmar == true){
+					popupTipoOportunidade.proposta.diagnosticoBean = DiagnosticoBean(diagnosticoDataGrid.selectedItem);
+					diagnosticoMaquinaVbox.visible = false;
+					diagnosticoMaquinaVbox.includeInLayout = false;
+					segmentoOportunidadeComponente.visible = true;
+					segmentoOportunidadeComponente.includeInLayout = true;
+					segmentoOportunidadeComponente.initEdit(this.urlLogin, this.usuarioBean, popupTipoOportunidade.proposta);
+				}
+				if(popupTipoOportunidade.isRemover == true){
+					this.findDiagnostic();
+				}
+			}
+			private function onResultFindDiagnostic(event:ResultEvent):void{
+				var diagnosticoArrayAux:ArrayCollection = ArrayCollection(event.result);
+				diagnosticoDataGrid.dataProvider = diagnosticoArrayAux;
+				
+				for(var i:int = 0; i < diagnosticoArrayAux.length; i++){
+					var d:DiagnosticoBean = DiagnosticoBean(diagnosticoArrayAux.getItemAt(i));
+					
+					if(!isNaN(d.numLinhas)){
+						totalRegistros = d.numLinhas;
+						break;
+					}
+				}
+				
+				var numPaginas:int = Math.ceil(totalRegistros / Number(quantidadeCbx.selectedLabel));
+				
+				if(numPaginas > (paginaAtual+1))
+				{					
+					avancarBtn.enabled = true;
+				}
+				else
+				{
+					avancarBtn.enabled = false;
+					voltarBtn.enabled = true;
+				}
+				paginas.removeAllChildren();
+				
+				if(numPaginas > 1){
+					for(var j:int = 0; j < numPaginas;j++){
+						var obj:Object = new Object();
+						obj.numPagina = numPaginas;
+						var numPagina:Label = new Label();
+						numPagina.text = (j+1)+"";
+						obj.pagina = (1+j);
+						numPagina.data = obj;
+						numPagina.addEventListener(MouseEvent.CLICK,clickPage);
+						numPagina.buttonMode = true;
+						paginas.addChild(numPagina);
+						if(paginaAtual == j){
+							numPagina.setStyle("fontWeight", 'bold');
+						}
+					}
+				}else{
+					avancarBtn.enabled = false;
+					voltarBtn.enabled = false;
+					var numPaginaAux:Label = new Label();
+					numPaginaAux.text = 1+"";
+					numPaginaAux.setStyle("fontWeight", 'bold');
+					paginas.addChild(numPaginaAux);
+				}
+				//dpHierarchy = ArrayCollection(event.result);
+				//diagnosticADG.dataProvider = dpHierarchy;
+				//hierarquia.source = dpHierarchy;
+			}
+			
+			private function clickPage(event:MouseEvent):void{
+				campoPesquisaTxt.text = "";
+				var numPage:Number = Object(Label(event.currentTarget).data).pagina;
+				paginaAtual = numPage -1;
+				this.findDiagnostic();
+				
+			}
+			
+			
+		
+//			private function onResultFindAllFiliais(event:ResultEvent):void{
+//				filialCbx.dataProvider = ArrayCollection(event.result);
+//				this.selectedFilial();
+//				//dpHierarchy = ArrayCollection(event.result);
+//				//diagnosticADG.dataProvider = dpHierarchy;
+//				//hierarquia.source = dpHierarchy;
+//			}
+//			private function selectedFilial():void{
+//				var fiialList:ArrayCollection = ArrayCollection(filialCbx.dataProvider);
+//				for(var i:int=0; i < fiialList.length; i++){
+//					var filial:FilialBean = FilialBean(fiialList.getItemAt(i));
+//					if(Number(this.usuarioBean.filial) == filial.stno){
+//						filialCbx.selectedIndex = i;
+//						break;
+//					}
+//				}
+//			}
+
+			protected function button_clickHandler(event:MouseEvent):void
+			{
+				this.findDiagnostic();
+			}
+			
+			protected function quantidadeCbx_changeHandler(event:ListEvent):void
+			{
+				campoPesquisaTxt.text = "";
+				paginaAtual = 0;
+				this.findDiagnostic();
+				
+			}
+			
+			protected function voltarBtn_clickHandler(event:MouseEvent):void
+			{
+				campoPesquisaTxt.text = "";
+				paginaAtual -= 1;
+				this.findDiagnostic();
+			}
+			
+			
+			protected function avancarBtn_clickHandler(event:MouseEvent):void
+			{
+				campoPesquisaTxt.text = "";
+				paginaAtual += 1;
+				this.findDiagnostic();
+			}
+
+
+			protected function diagnosticoDataGrid_changeHandler():void
+			{
+				if(diagnosticoDataGrid.selectedItem == null){
+					return;
+				}
+				var popUpDiagnostico:PopupDiagnosticSumary = new PopupDiagnosticSumary();
+				popUpDiagnostico.addEventListener(CloseEvent.CLOSE, removeDiagnosticSumaryOSPopUp);
+				PopUpManager.addPopUp(popUpDiagnostico, this, true);
+				//PopUpManager.centerPopUp(popUpDiagnostico);
+				popUpDiagnostico.init(DiagnosticoBean(diagnosticoDataGrid.selectedItem), urlLogin);
+				campoPesquisaTxt.text = DiagnosticoBean(diagnosticoDataGrid.selectedItem).numeroSerie;
+			}
+			
+			private function removeDiagnosticSumaryOSPopUp(obj:CloseEvent):void{
+				PopUpManager.removePopUp(obj.currentTarget as IFlexDisplayObject);
+			}
+			protected function setDiagnostico():void{
+				if(diagnosticoDataGrid.selectedItem == null){
+					return;
+				}
+				campoPesquisaTxt.text = DiagnosticoBean(diagnosticoDataGrid.selectedItem).numeroSerie;
+			}
+
+		]]>
+	</mx:Script>
+	<mx:Dissolve id="dissolveOut" duration="1000" alphaFrom="1.0" alphaTo="0.0"/>
+	<mx:Dissolve id="dissolveIn" duration="1000" alphaFrom="0.0" alphaTo="1.0"/>
+	<mx:RemoteObject destination="service" invoke="{ProgressBarHelper.openProgressBar(this)}" id="serviceController" showBusyCursor="true" fault="ProgressBarHelper.erro(event,urlLogin);ProgressBarHelper.removeProgressBar()">
+		<mx:method name="findDiagnostic" result="onResultFindDiagnostic(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="liberarEquipamento" result="onResultLiberarEquipamento(event);ProgressBarHelper.removeProgressBar()" />
+		<!--mx:method name="findAllFiliais" result="onResultFindAllFiliais(event);ProgressBarHelper.removeProgressBar()" /-->
+	</mx:RemoteObject>
+	<mx:VBox x="0" y="0" width="100%" height="100%" hideEffect="{dissolveOut}" showEffect="{dissolveIn}" id="diagnosticoMaquinaVbox">
+		<mx:ApplicationControlBar x="0" y="0"  width="100%" horizontalAlign="center">
+			<mx:Label text="Diagnóstico Máquina" fontWeight="bold"/>
+		</mx:ApplicationControlBar>
+		<mx:HBox width="100%" >
+			<mx:Label text="Campo pesquisa" height="21"/>
+			<mx:TextInput id="campoPesquisaTxt" toolTip="Pesquisar por série, modelo e Nome do Cliente."/>
+			<!--mx:ComboBox id="filialCbx" labelField="stnm" editable="true"></mx:ComboBox-->
+			<mx:Button label="Pesquisar" click="button_clickHandler(event)"/>
+			<mx:Button label="Buscar Todos os Diagnósticos" click="findTodosDiagnostic()" toolTip="Recupera todos os diagnósticos de todas as filiais."/>
+		</mx:HBox>
+		<mx:DataGrid id="diagnosticoDataGrid" width="100%" height="100%" doubleClickEnabled="true" click="setDiagnostico()" doubleClick="diagnosticoDataGrid_changeHandler()">
+			<mx:columns>
+				<mx:DataGridColumn headerText="Filial" dataField="filial" width="200"/>
+				<mx:DataGridColumn headerText="Modelo" dataField="modelo"/>
+				<mx:DataGridColumn headerText="Série" dataField="numeroSerie"/>
+				<mx:DataGridColumn headerText="Fim Garantia" dataField="fimGarantia"/>
+				<mx:DataGridColumn headerText="Cliente" dataField="nomeCliente" width="255"/>
+				<mx:DataGridColumn headerText="Backlog Campo" dataField="col3">
+					<mx:itemRenderer> 
+						<mx:Component>
+							<mx:VBox verticalGap="2" horizontalAlign="center">
+								<mx:TextInput cornerRadius="7" editable="false" backgroundColor="{(data.backlogCampo == 'Sim')?0x99FF6347:0x04b041}" textAlign="center" width="60" text="{data.backlogCampo}"/>
+							</mx:VBox>
+						</mx:Component> 
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+				<mx:DataGridColumn headerText="Backlog Pmp" dataField="col3">
+					<mx:itemRenderer> 
+						<mx:Component>
+							<mx:VBox verticalGap="2" horizontalAlign="center">
+								<mx:TextInput cornerRadius="7" editable="false" backgroundColor="{(data.backlog == 'Sim')?0x99FF6347:0x04b041}" textAlign="center" width="60" text="{data.backlog}" />
+							</mx:VBox>
+						</mx:Component> 
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+				<mx:DataGridColumn headerText="Dt. Backlog Pmp" dataField="dataBacklogPmp"/>
+				<mx:DataGridColumn headerText="Dt. Backlog Campo" dataField="dataBacklogCampo"/>
+				<!--mx:DataGridColumn headerText="Dt. SOS" dataField="dataColeta"/-->
+				<mx:DataGridColumn headerText="Dt. Import. SOS" dataField="dataImportacaoSos"/>
+				<mx:DataGridColumn headerText="SOS" dataField="col3">
+					<mx:itemRenderer> 
+						<mx:Component>
+							<mx:VBox verticalGap="2" horizontalAlign="center">
+								<mx:TextInput cornerRadius="7" editable="false" backgroundColor="{(data.corSos == 'red')?0x99FF6347:(data.corSos == 'green')?0x04b041:0xdcd901}" textAlign="center" width="60" text="{data.totalSos}"/>
+							</mx:VBox>
+						</mx:Component> 
+					</mx:itemRenderer>
+				</mx:DataGridColumn>	
+				<mx:DataGridColumn headerText="PL" dataField="col3">
+					<mx:itemRenderer> 
+						<mx:Component>
+							<mx:VBox verticalGap="2" horizontalAlign="center">
+								<mx:TextInput cornerRadius="7" editable="false" backgroundColor="{(data.cor == 'red')?0x99FF6347:(data.cor == 'green')?0x04b041:0xdcd901}" textAlign="center" width="60" text="{data.numerDiagnosticos}" id="numDiagnosticosTxt"/>
+							</mx:VBox>
+						</mx:Component> 
+					</mx:itemRenderer>
+				</mx:DataGridColumn>	
+				<mx:DataGridColumn headerText="SMU" dataField="col3">
+					<mx:itemRenderer> 
+						<mx:Component>
+							<mx:VBox verticalGap="2" horizontalAlign="center">
+								<mx:TextInput cornerRadius="7" editable="false" backgroundColor="{(data.corSmu == 'red')?0x99FF6347:0x04b041}" textAlign="center" width="60" text="{data.totalSmu}" id="numDiagnosticosTxt"/>
+							</mx:VBox>
+						</mx:Component> 
+					</mx:itemRenderer>
+				</mx:DataGridColumn>	
+				<mx:DataGridColumn headerText="Lock" dataField="estimateByFuncionarioLock" width="60"/>
+				<mx:DataGridColumn headerText="Ações" dataField="col3">
+					<mx:itemRenderer> 
+						<mx:Component>
+							<mx:HBox verticalGap="2" horizontalAlign="center" verticalAlign="middle">
+								<mx:Image width="35" buttonMode="true" height="25" source="./img/purchase_order.png" click="{dispatchEvent(new Event('CRIARPROPOSTA', true))}" visible="{((data.isLock == 'S' &amp;&amp; data.isLockMy == 'S') || data.isLock == 'N')?true:false}" toolTip="Criar Oportunidade de Serviço!"/>
+								<mx:Image width="23" buttonMode="true" height="23" source="./img/detailed.png" click="{dispatchEvent(new Event('HISTORICOOS', true))}"  toolTip="Visualizar histórico de OS!"/>
+								<mx:Image source="img/confirm.png" width="20" buttonMode="true" height="20"  toolTip="Clique para: liberar o equipamento." visible="{(data.isLock == 'S' &amp;&amp; data.isLockMy == 'S')?true:false}" click="{dispatchEvent(new Event('LIBERAREQUIPAMENTO', true))}"/>
+							</mx:HBox>
+						</mx:Component> 
+					</mx:itemRenderer>
+				</mx:DataGridColumn>	
+			</mx:columns>
+		</mx:DataGrid>
+		<mx:HBox width="100%" horizontalAlign="center" paddingBottom="20">
+			<mx:Button label="" id="voltarBtn" enabled="{paginaAtual!=0}" click="voltarBtn_clickHandler(event)"/>
+			<mx:HBox id="paginas">
+			</mx:HBox>
+			<mx:Button label="" id="avancarBtn" click="avancarBtn_clickHandler(event)"/>
+			<mx:Label x="114" text="Registros por página:" bottom="12"/>
+			<mx:ComboBox id="quantidadeCbx" bottom="10" change="quantidadeCbx_changeHandler(event)" >
+				<mx:dataProvider>
+					<mx:Array>
+						<!--mx:Object label="100"/>
+						<mx:Object label="150"/-->
+						<mx:Object label="200"/>
+					</mx:Array>
+				</mx:dataProvider>
+			</mx:ComboBox>
+			<!--mx:Label left="298" bottom="12" text="Total de registros: {totalRegistros}"/-->			
+		</mx:HBox>
+	</mx:VBox>
+	<componente:SegmentoOportunidade x="0" y="0" width="100%" height="100%" visible="false" includeInLayout="false" id="segmentoOportunidadeComponente" hideEffect="{dissolveOut}" showEffect="{dissolveIn}">
+	</componente:SegmentoOportunidade>
+	<componente:OportunidadesSegmentos x="0" y="0" width="100%" height="100%" visible="false" includeInLayout="false" id="oportunidadesSegmentosComponente" hideEffect="{dissolveOut}" showEffect="{dissolveIn}">
+	</componente:OportunidadesSegmentos>
+	<!--mx:AdvancedDataGrid x="0" y="77" id="diagnosticADG" width="100%" height="100%" variableRowHeight="true">
+		<mx:dataProvider>
+			<mx:HierarchicalData id="hierarquia" childrenField="detail"/>
+		</mx:dataProvider>
+		<mx:columns>
+			<mx:AdvancedDataGridColumn headerText="Filial" dataField="filial"/>
+			<mx:AdvancedDataGridColumn headerText="Modelo" dataField="modelo"/>
+			<mx:AdvancedDataGridColumn headerText="Série" dataField="numeroSerie"/>
+			<mx:AdvancedDataGridColumn headerText="Cliente" dataField="nomeCliente"/>
+			<mx:AdvancedDataGridColumn headerText="Diagnósticos">
+				<mx:itemRenderer> 
+					<mx:Component>
+						<mx:VBox verticalGap="2" horizontalAlign="center">
+							<mx:Script>
+								<![CDATA[
+									import mx.controls.Alert;
+									public function init():void{
+										if(data != null){
+											numDiagnosticosTxt.setStyle('borderColor',data.cor);
+										}
+									}
+								]]>
+							</mx:Script>
+							<mx:TextInput cornerRadius="7" textAlign="center" width="60" text="{data.numerDiagnosticos}" id="numDiagnosticosTxt" updateComplete="{init()}"/>
+						</mx:VBox>
+					</mx:Component> 
+				</mx:itemRenderer>
+			</mx:AdvancedDataGridColumn>
+		</mx:columns>
+		<mx:rendererProviders>            
+			<mx:AdvancedDataGridRendererProvider 
+				dataField="detalhes"  
+				renderer="componente.DiagnosticSumary"
+				columnIndex="0"
+				columnSpan="0"/>
+		</mx:rendererProviders> 
+	</mx:AdvancedDataGrid-->
+	
+</mx:Canvas>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<util:ModuleTitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" title="Histórico de OS" xmlns:util="util.*" layout="absolute" width="1020" height="528">
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.rpc.events.ResultEvent;
+			
+			import util.ProgressBarHelper;
+			private var urlLogin:String;
+			public function init(numSerie:String, urlLogin:String):void{
+				this.urlLogin = urlLogin;
+				serviceController.findAllHistoricoOS(numSerie);
+			}
+			private function onResultFindAllHistoricoOS(event:ResultEvent):void{
+				gridHistoricoOs.dataProvider = ArrayCollection(event.result);
+			}
+		]]>
+	</mx:Script>
+	<mx:RemoteObject destination="service" invoke="{ProgressBarHelper.openProgressBar(this)}" id="serviceController" showBusyCursor="true" fault="ProgressBarHelper.erro(event,urlLogin);ProgressBarHelper.removeProgressBar()">
+		<mx:method name="findAllHistoricoOS" result="onResultFindAllHistoricoOS(event);ProgressBarHelper.removeProgressBar()" />
+	</mx:RemoteObject>
+	<mx:DataGrid x="0" y="0" width="100%" height="100%" id="gridHistoricoOs">
+		<mx:columns>
+			<mx:DataGridColumn headerText="OS" dataField="numOs" width="65"/>
+			<mx:DataGridColumn headerText="Cliente" dataField="cliente" width="200"/>
+			<mx:DataGridColumn headerText="Horimetro" dataField="horimetro" width="70"/>
+			<mx:DataGridColumn headerText="JBCD" dataField="jbcd" width="45"/>
+			<mx:DataGridColumn headerText="Desc. JBCD" dataField="descJbcd"/>
+			<mx:DataGridColumn headerText="CPTCD" dataField="cptcd" width="49"/>
+			<mx:DataGridColumn headerText="Desc. CPTCD" dataField="descCptcd" width="200"/>
+			<mx:DataGridColumn headerText="Filial" dataField="filial" width="45"/>
+			<mx:DataGridColumn headerText="Data Abertura" dataField="dtAbertura"/>
+			<mx:DataGridColumn headerText="Data Fim" dataField="dtFinalizacao"/>
+		</mx:columns>
+	</mx:DataGrid>
+	
+</util:ModuleTitleWindow>

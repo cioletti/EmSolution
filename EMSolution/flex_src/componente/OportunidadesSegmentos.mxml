@@ -1,0 +1,1137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%">
+	<mx:Script>
+		<![CDATA[
+			import bean.ConfigAlarmeBean;
+			import bean.Detalhes;
+			import bean.DetalhesDiagnosticoBean;
+			import bean.DiagnosticoBean;
+			import bean.OportunidadePmpBean;
+			import bean.PropostaBean;
+			import bean.SegmentoBean;
+			import bean.SmuBean;
+			import bean.SosBean;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.core.IFlexDisplayObject;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			
+			import util.ProgressBar;
+			import util.ProgressBarHelper;
+			private var urlLogin:String;
+			private var dBean:DiagnosticoBean = new DiagnosticoBean();
+			public var propostaBean:PropostaBean = new PropostaBean();
+			public var segmentoBean:SegmentoBean = new SegmentoBean();
+			private var pipPspGarantia:DiagnosticoBean = new DiagnosticoBean();
+			public var listSosAssociado:ArrayCollection = new ArrayCollection();
+			public var listPlAssociado:ArrayCollection = new ArrayCollection();
+			public var listPmpAssociado:ArrayCollection = new ArrayCollection();
+			private var isNovo:Boolean = false;
+			private var popupObsRejeicao:PopupObsRejeicaoEmsSegmento;
+			private var popupObsRejeicaoPL:PopupObsRejeicaoPLSegmento;
+			private var popupObsRejeicaoSos:PopupObsRejeicaoSos;
+			private var popupObsRejeicaoSMU:PopupObsRejeicaoSMU;
+			public function init(dBean:DiagnosticoBean, urlLogin:String, segmentoBean:SegmentoBean, isClear:Boolean):void{
+				isNovo = false;
+				if(isClear == true){
+					listSosAssociado.removeAll();
+					listPlAssociado.removeAll();
+					listPmpAssociado.removeAll();
+					gridCodigoAlarmePLNaoAssociado.dataProvider = null;
+					gridCodigoAlarmePlAssociado.dataProvider = null;
+					gridSos.dataProvider = null;
+					gridSosAssociado.dataProvider = null;
+					gridPmpNaoAssociado.dataProvider = null;
+					gridPmpAssociado.dataProvider = null;
+					gridCampoNaoAssociado.dataProvider = null;
+					gridCampoAssociado.dataProvider = null;
+					gridSmuAssociado.dataProvider = null;
+					gridSmuNaoAssociado.dataProvider = null;
+				}
+				this.dBean = dBean;
+				this.urlLogin = urlLogin;
+				this.segmentoBean = segmentoBean;
+				numSerie.text = dBean.numeroSerie;
+				horimetro.text = String(dBean.detalhesDiagnosticoBean.horimetro);
+				dtUltimaAt.text = dBean.detalhesDiagnosticoBean.dataAtualizacaoHorimetro;
+				tpContrato.text = dBean.detalhesDiagnosticoBean.tipoContrato;
+				dtAceite.text = dBean.detalhesDiagnosticoBean.dataAceite;
+				levelTxt1.text = String(dBean.detalhesDiagnosticoBean.level1);
+				levelTxt2.text = String(dBean.detalhesDiagnosticoBean.level2);
+				levelTxt3.text = String(dBean.detalhesDiagnosticoBean.level3);
+				dataInspecao.text = String(dBean.detalhesDiagnosticoBean.dataInspecao);
+				dataInspecaoCampo.text = String(dBean.detalhesDiagnosticoBean.dataInspecaoCampo);
+				sosNormal.text = String(dBean.detalhesDiagnosticoBean.normalSos);
+				sosMonitorar.text = String(dBean.detalhesDiagnosticoBean.monitorarSos);
+				sosCritico.text = String(dBean.detalhesDiagnosticoBean.criticoSos);
+				smuCritico.text = String(dBean.totalSmu);
+				gridSos.addEventListener("IMPRIMIRRELATORIO", imprimirRelatorio);
+				gridSosAssociado.addEventListener("IMPRIMIRRELATORIOASSOCIADAO", imprimirRelatorioAssociado);
+				gridPmpNaoAssociado.addEventListener("SALVAROBSREJEICAO",abrirPopupObsRejeicao);
+				gridCampoNaoAssociado.addEventListener("SALVAROBSREJEICAOCAMPO",abrirPopupObsRejeicaoCampo);
+				gridSmuNaoAssociado.addEventListener("SALVAROBSREJEICAOSMU",abrirPopupObsRejeicaoSMU);
+				gridCodigoAlarmePLNaoAssociado.addEventListener("REJEITARPL", abrirPopupObsRejeicaoPL);
+				gridSos.addEventListener("REJEITARSOS", abrirPopupObsRejeicaoSos);
+				serviceController.findallPipPspGarantia(this.dBean.numeroSerie);
+				
+			}
+			public function initNovaProposta(propostaBean:PropostaBean, urlLogin:String, segmentoBean:SegmentoBean):void{
+				isNovo = true;
+				listSosAssociado.removeAll();
+				listPlAssociado.removeAll();
+				listPmpAssociado.removeAll();
+				gridCodigoAlarmePLNaoAssociado.dataProvider = null;
+				gridCodigoAlarmePlAssociado.dataProvider = null;
+				gridSos.dataProvider = null;
+				gridSosAssociado.dataProvider = null;
+				gridPmpNaoAssociado.dataProvider = null;
+				gridPmpAssociado.dataProvider = null;
+				gridCampoNaoAssociado.dataProvider = null;
+				gridCampoAssociado.dataProvider = null;
+				gridSmuAssociado.dataProvider = null;
+				gridSmuNaoAssociado.dataProvider = null;
+				this.propostaBean = propostaBean;
+				this.dBean = this.propostaBean.diagnosticoBean;
+				this.urlLogin = urlLogin;
+				this.segmentoBean = segmentoBean;
+				numSerie.text = dBean.numeroSerie;
+				horimetro.text = String(dBean.detalhesDiagnosticoBean.horimetro);
+				dtUltimaAt.text = dBean.detalhesDiagnosticoBean.dataAtualizacaoHorimetro;
+				tpContrato.text = dBean.detalhesDiagnosticoBean.tipoContrato;
+				dtAceite.text = dBean.detalhesDiagnosticoBean.dataAceite;
+				levelTxt1.text = String(dBean.detalhesDiagnosticoBean.level1);
+				levelTxt2.text = String(dBean.detalhesDiagnosticoBean.level2);
+				levelTxt3.text = String(dBean.detalhesDiagnosticoBean.level3);
+				dataInspecao.text = String(dBean.detalhesDiagnosticoBean.dataInspecao);
+				dataInspecaoCampo.text = String(dBean.detalhesDiagnosticoBean.dataInspecaoCampo);
+				sosNormal.text = String(dBean.detalhesDiagnosticoBean.normalSos);
+				sosMonitorar.text = String(dBean.detalhesDiagnosticoBean.monitorarSos);
+				sosCritico.text = String(dBean.detalhesDiagnosticoBean.criticoSos);
+				smuCritico.text = String(dBean.totalSmu);
+				gridSos.addEventListener("IMPRIMIRRELATORIO", imprimirRelatorio);
+				gridSos.addEventListener("SALVAROBSREJEICAO", abrirPopupObsRejeicao);
+				gridCodigoAlarmePLNaoAssociado.addEventListener("REJEITARPL", abrirPopupObsRejeicaoPL);
+				gridSosAssociado.addEventListener("IMPRIMIRRELATORIOASSOCIADAO", imprimirRelatorioAssociado);
+				serviceController.findallPipPspGarantia(this.dBean.numeroSerie);
+				
+			}
+			private function onResultFindConfigAlarme(event:ResultEvent):void{
+				gridCodigoAlarmePLNaoAssociado.dataProvider = event.result;
+				var alarmeNaoAssociado:ArrayCollection = ArrayCollection(gridCodigoAlarmePLNaoAssociado.dataProvider);
+				if(gridCodigoAlarmePlAssociado.dataProvider != null){
+					var alarmeAssociado:ArrayCollection = ArrayCollection(gridCodigoAlarmePlAssociado.dataProvider);
+					for(var i:int = 0; i < alarmeNaoAssociado.length; i++){
+						var confAlarmeNaoAssociado:ConfigAlarmeBean = ConfigAlarmeBean(alarmeNaoAssociado.getItemAt(i)); 
+						for(var j:int = 0; j < alarmeAssociado.length; j++){
+							var confAlarmeAssociado:ConfigAlarmeBean = ConfigAlarmeBean(alarmeAssociado.getItemAt(j));
+							if(confAlarmeNaoAssociado.nivel == confAlarmeAssociado.nivel 
+								&& confAlarmeNaoAssociado.idTipoAlarme == confAlarmeAssociado.idTipoAlarme
+								&& confAlarmeNaoAssociado.codigo == confAlarmeAssociado.codigo
+								&& confAlarmeNaoAssociado.codigoCid == confAlarmeAssociado.codigoCid
+								&& confAlarmeNaoAssociado.codigoEid == confAlarmeAssociado.codigoEid
+								&& confAlarmeNaoAssociado.codigoFmi == confAlarmeAssociado.codigoFmi){
+								ArrayCollection(gridCodigoAlarmePLNaoAssociado.dataProvider).removeItemAt(i);
+							}
+						}
+					}
+				}
+			}
+			
+			protected function levelTxt1_changeHandler(event:Event):void
+			{
+				//this.resizeCanvasDetailPl();
+				tn.selectedIndex = 0;
+				serviceController.findConfigAlarme(1,this.dBean.numeroSerie);
+			}
+			
+			
+			protected function levelTxt2_changeHandler(event:Event):void
+			{
+				//this.resizeCanvasDetailPl();
+				tn.selectedIndex = 0;
+				serviceController.findConfigAlarme(2,this.dBean.numeroSerie);
+			}
+			
+			
+			protected function levelTxt3_changeHandler(event:Event):void
+			{
+				//this.resizeCanvasDetailPl();
+				tn.selectedIndex = 0;
+				serviceController.findConfigAlarme(3,this.dBean.numeroSerie);
+			}
+			
+			public function dataInspecao_click(event:Event):void
+			{
+				if(this.dBean.detalhesDiagnosticoBean.dataInspecao != 'N/A'){
+					//this.resizeCanvasTree();
+					tn.selectedIndex = 2;
+					serviceController.findAllOportunidadePmp(this.dBean.detalhesDiagnosticoBean.idOsPalm);
+					//inspecaoPMPTree.recebeObjeto(this.dBean.detalhesDiagnosticoBean.idOsPalm,urlLogin);
+				}
+			}
+			public function dataInspecaoCampo_click(event:Event):void
+			{
+				if(this.dBean.detalhesDiagnosticoBean.dataInspecaoCampo != 'N/A'){
+					//this.resizeCanvasTree();
+					tn.selectedIndex = 3;
+					serviceController.findAllOportunidadeCampo(this.dBean.detalhesDiagnosticoBean.idOsPalmCampo);
+					//inspecaoPMPTree.recebeObjeto(this.dBean.detalhesDiagnosticoBean.idOsPalm,urlLogin);
+				}
+			}
+			
+			protected function onResultFindAllOportunidadePmp(event:ResultEvent):void
+			{
+				gridPmpNaoAssociado.dataProvider = event.result;
+				
+				var pmpNaoAssociadoList:ArrayCollection = ArrayCollection(gridPmpNaoAssociado.dataProvider);
+				if(gridPmpAssociado.dataProvider != null){
+					var pmpAssociadoList:ArrayCollection = ArrayCollection(gridPmpAssociado.dataProvider);
+					for(var i:int = 0; i < pmpNaoAssociadoList.length; i++){
+						var pmpNaoAssociado:OportunidadePmpBean = OportunidadePmpBean(pmpNaoAssociadoList.getItemAt(i)); 
+						for(var j:int = 0; j < pmpAssociadoList.length; j++){
+							var pmpAssociado:OportunidadePmpBean = OportunidadePmpBean(pmpAssociadoList.getItemAt(j));
+							if(pmpNaoAssociado.idOsPalmDt == pmpAssociado.idOsPalmDt){
+								ArrayCollection(gridPmpNaoAssociado.dataProvider).removeItemAt(i);
+							}
+						}
+					}
+				}
+			}
+			protected function onResultFindAllOportunidadeCampo(event:ResultEvent):void
+			{
+				gridCampoNaoAssociado.dataProvider = event.result;
+				
+				var campoNaoAssociadoList:ArrayCollection = ArrayCollection(gridCampoNaoAssociado.dataProvider);
+				if(gridCampoAssociado.dataProvider != null){
+					var campoAssociadoList:ArrayCollection = ArrayCollection(gridCampoAssociado.dataProvider);
+					for(var i:int = 0; i < campoNaoAssociadoList.length; i++){
+						var campoNaoAssociado:OportunidadePmpBean = OportunidadePmpBean(campoNaoAssociadoList.getItemAt(i)); 
+						for(var j:int = 0; j < campoAssociadoList.length; j++){
+							var campoAssociado:OportunidadePmpBean = OportunidadePmpBean(campoAssociadoList.getItemAt(j));
+							if(campoNaoAssociado.idOsPalmDt == campoAssociado.idOsPalmDt){
+								ArrayCollection(gridCampoNaoAssociado.dataProvider).removeItemAt(i);
+							}
+						}
+					}
+				}
+			}
+			
+			//			private function resizeCanvasTree():void
+			//			{
+			//				inspecaoPMPTree.visible = true;
+			//				gridCodigoAlarme.visible = false;
+			//				gridCodigoAlarme.includeInLayout = false;
+			//				inspecaoPMPTree.includeInLayout = true;
+			//				gridSos.includeInLayout = false;
+			//				gridSos.visible = false;
+			//			}
+			//			private function resizeCanvasDetailPl():void
+			//			{
+			//				inspecaoPMPTree.visible = false;
+			//				gridCodigoAlarme.visible = true;
+			//				gridCodigoAlarme.includeInLayout = true;
+			//				inspecaoPMPTree.includeInLayout = false;
+			//				gridSos.includeInLayout = false;
+			//				gridSos.visible = false;
+			//			}
+			//			private function resizeCanvassOS():void
+			//			{
+			//				inspecaoPMPTree.visible = false;
+			//				gridCodigoAlarme.visible = false;
+			//				gridCodigoAlarme.includeInLayout = false;
+			//				inspecaoPMPTree.includeInLayout = false;
+			//				gridSos.includeInLayout = true;
+			//				gridSos.visible = true;
+			//			}
+			
+			protected function sosNormal_changeHandler(event:Event):void
+			{
+				//this.resizeCanvassOS();
+				tn.selectedIndex = 1;
+				//serviceController.findAllSos(this.dBean.numeroSerie,"NAR");
+			}
+			
+			
+			protected function sosMonitorar_changeHandler(event:Event):void
+			{
+				//this.resizeCanvassOS();
+				tn.selectedIndex = 1;
+				//serviceController.findAllSos(this.dBean.numeroSerie,"MC");
+			}
+			
+			
+			protected function sosCritico_changeHandler(event:Event):void
+			{
+				//this.resizeCanvassOS();
+				tn.selectedIndex = 1;
+				serviceController.findAllSos(this.dBean.numeroSerie,"AR");
+			}
+			protected function onResultFindAllSos(event:ResultEvent):void
+			{
+				gridSos.dataProvider = event.result;
+				var sosNaoAssociadoList:ArrayCollection = ArrayCollection(gridSos.dataProvider);
+				if(gridSosAssociado.dataProvider != null){
+					var sosAssociadoList:ArrayCollection = ArrayCollection(gridSosAssociado.dataProvider);
+					for(var i:int = 0; i < sosNaoAssociadoList.length; i++){
+						var sosNaoAssociado:SosBean = SosBean(sosNaoAssociadoList.getItemAt(i)); 
+						for(var j:int = 0; j < sosAssociadoList.length; j++){
+							var sosAssociado:SosBean = SosBean(sosAssociadoList.getItemAt(j));
+							if(sosNaoAssociado.textId == sosAssociado.textId){
+								ArrayCollection(gridSos.dataProvider).removeItemAt(i);
+							}
+						}
+					}
+				}
+			}
+			protected function smuCritico_changeHandler(event:Event):void
+			{
+				//this.resizeCanvassOS();
+				tn.selectedIndex = 4;
+				serviceController.findAllSmu(this.dBean.numeroSerie);
+			}
+			protected function onResultFindAllSmu(event:ResultEvent):void
+			{
+				gridSmuNaoAssociado.dataProvider = event.result;
+				var smuNaoAssociadoList:ArrayCollection = ArrayCollection(gridSmuNaoAssociado.dataProvider);
+				if(gridSmuAssociado.dataProvider != null){
+					var smuAssociadoList:ArrayCollection = ArrayCollection(gridSmuAssociado.dataProvider);
+					for(var i:int = 0; i < smuNaoAssociadoList.length; i++){
+						var smuNaoAssociado:SmuBean = SmuBean(smuNaoAssociadoList.getItemAt(i)); 
+						for(var j:int = 0; j < smuAssociadoList.length; j++){
+							var smuAssociado:SmuBean = SmuBean(smuAssociadoList.getItemAt(j));
+							if(smuNaoAssociado.id == smuAssociado.id){
+								ArrayCollection(gridSmuNaoAssociado.dataProvider).removeItemAt(i);
+							}
+						}
+					}
+				}
+			}
+			protected function onResultFindAllSosAssociado(event:ResultEvent):void
+			{
+				gridSosAssociado.dataProvider = event.result;
+				serviceController.findAllPlAssociado(this.segmentoBean.id);
+			}
+			protected function onResultFindAllPlAssociado(event:ResultEvent):void
+			{
+				gridCodigoAlarmePlAssociado.dataProvider = event.result;
+				serviceController.findAllPmpAssociado(this.segmentoBean.id);
+			}
+			protected function onResultFindAllPmpAssociado(event:ResultEvent):void
+			{
+				gridPmpAssociado.dataProvider = event.result;
+				serviceController.findAllCampoAssociado(this.segmentoBean.id);
+			}
+			protected function onResultFindAllCampoAssociado(event:ResultEvent):void
+			{
+				gridCampoAssociado.dataProvider = event.result;
+				serviceController.findAllSmuAssociado(this.segmentoBean.id);
+			}
+			protected function onResultFindAllSmuAssociado(event:ResultEvent):void
+			{
+				gridSmuAssociado.dataProvider = event.result;
+			}
+			
+			protected function onResultFindallPipPspGarantia(event:ResultEvent):void
+			{
+				this.pipPspGarantia = DiagnosticoBean(event.result);
+				dataFim.text = pipPspGarantia.fimGarantia;
+				dataInicio.text = pipPspGarantia.inicioGarantia;
+				pipPsp.text = pipPspGarantia.pip + "/" + pipPspGarantia.psp;
+				serviceController.findAllSosAssociado(segmentoBean.id);
+				if(isNaN(this.dBean.detalhesDiagnosticoBean.horimetro) || this.dBean.detalhesDiagnosticoBean.horimetro == 0){
+					serviceController.findHorimetroDataAtualizacao(this.dBean);
+				}
+				
+			}
+			private function associarPl():void{
+				if(gridCodigoAlarmePLNaoAssociado.selectedIndex == -1){
+					return;
+				}
+				if(ConfigAlarmeBean(gridCodigoAlarmePLNaoAssociado.selectedItem).acoesRecomendadas == null && ConfigAlarmeBean(gridCodigoAlarmePLNaoAssociado.selectedItem).acoesRecomendadas == ''){
+					Alert.show("Não é possível adicionar diagnóstico sem o mesmo estar cadastrado!", "Alerta");
+					return;
+				}
+				if(gridCodigoAlarmePLNaoAssociado.dataProvider != null && gridCodigoAlarmePLNaoAssociado.selectedIndex != -1){
+					//					//listPlAssociado.removeAll();
+					//					if(gridCodigoAlarmePlAssociado.dataProvider != null){
+					//						listPlAssociado.addAll(ArrayCollection(gridCodigoAlarmePlAssociado.dataProvider)); 
+					//					}
+					//					listPlAssociado.addItem(gridCodigoAlarmePLNaoAssociado.selectedItem);
+					//					gridCodigoAlarmePlAssociado.dataProvider = null;
+					ArrayCollection(gridCodigoAlarmePlAssociado.dataProvider).addItem(gridCodigoAlarmePLNaoAssociado.selectedItem);
+					ArrayCollection(gridCodigoAlarmePLNaoAssociado.dataProvider).removeItemAt(gridCodigoAlarmePLNaoAssociado.selectedIndex);
+				}
+			}
+			private function desassociarPl():void{
+				if(gridCodigoAlarmePlAssociado.selectedIndex == -1){
+					return;
+				}
+				if(gridCodigoAlarmePlAssociado.dataProvider != null && gridCodigoAlarmePlAssociado.selectedIndex != -1){
+					ArrayCollection(gridCodigoAlarmePLNaoAssociado.dataProvider).addItem(gridCodigoAlarmePlAssociado.selectedItem);
+					ArrayCollection(gridCodigoAlarmePlAssociado.dataProvider).removeItemAt(gridCodigoAlarmePlAssociado.selectedIndex);
+					//listPlAssociado.removeAll();
+					//listPlAssociado.addAll(ArrayCollection(gridCodigoAlarmePlAssociado.dataProvider));
+				}
+				
+			}
+			private function associarSos():void{
+				if(gridSos.selectedIndex == -1){
+					return;
+				}
+				if(gridSos.dataProvider != null && gridSos.selectedIndex != -1){
+					//					if(gridSosAssociado.dataProvider != null){
+					//						listSosAssociado.addAll(ArrayCollection(gridSosAssociado.dataProvider)); 
+					//					}
+					//					listSosAssociado.addItem(gridSos.selectedItem);
+					//					gridSosAssociado.dataProvider = null;
+					ArrayCollection(gridSosAssociado.dataProvider).addItem(gridSos.selectedItem);
+					ArrayCollection(gridSos.dataProvider).removeItemAt(gridSos.selectedIndex);
+				}
+			}
+			private function associarSmu():void{
+				if(gridSmuNaoAssociado.selectedIndex == -1){
+					return;
+				}
+				if(gridSmuNaoAssociado.dataProvider != null && gridSmuNaoAssociado.selectedIndex != -1){
+					//					if(gridSosAssociado.dataProvider != null){
+					//						listSosAssociado.addAll(ArrayCollection(gridSosAssociado.dataProvider)); 
+					//					}
+					//					listSosAssociado.addItem(gridSos.selectedItem);
+					//					gridSosAssociado.dataProvider = null;
+					ArrayCollection(gridSmuAssociado.dataProvider).addItem(gridSmuNaoAssociado.selectedItem);
+					ArrayCollection(gridSmuNaoAssociado.dataProvider).removeItemAt(gridSmuNaoAssociado.selectedIndex);
+				}
+			}
+			private function desassociarSmu():void{
+				if(gridSmuAssociado.selectedIndex == -1){
+					return;
+				}
+				if(gridSmuAssociado.dataProvider != null && gridSmuAssociado.selectedIndex != -1){
+					ArrayCollection(gridSmuNaoAssociado.dataProvider).addItem(gridSmuAssociado.selectedItem);
+					ArrayCollection(gridSmuAssociado.dataProvider).removeItemAt(gridSmuAssociado.selectedIndex);
+					//listSosAssociado.removeAll();
+					//listSosAssociado.addAll(ArrayCollection(gridSosAssociado.dataProvider));
+				}
+				
+			}
+			private function desassociarSos():void{
+				if(gridSosAssociado.selectedIndex == -1){
+					return;
+				}
+				if(gridSosAssociado.dataProvider != null && gridSosAssociado.selectedIndex != -1){
+					ArrayCollection(gridSos.dataProvider).addItem(gridSosAssociado.selectedItem);
+					ArrayCollection(gridSosAssociado.dataProvider).removeItemAt(gridSosAssociado.selectedIndex);
+					//listSosAssociado.removeAll();
+					//listSosAssociado.addAll(ArrayCollection(gridSosAssociado.dataProvider));
+				}
+				
+			}
+			private function associarPmp():void{
+				if(gridPmpNaoAssociado.selectedIndex == -1){
+					return;
+				}
+				if(gridPmpNaoAssociado.dataProvider != null && gridPmpNaoAssociado.selectedIndex != -1){
+					//					if(gridPmpAssociado.dataProvider != null){
+					//						listPmpAssociado.addAll(ArrayCollection(gridPmpAssociado.dataProvider)); 
+					//					}
+					//					listPmpAssociado.addItem(gridPmpNaoAssociado.selectedItem);
+					//					gridPmpAssociado.dataProvider = null;
+					ArrayCollection(gridPmpAssociado.dataProvider).addItem(gridPmpNaoAssociado.selectedItem);
+					ArrayCollection(gridPmpNaoAssociado.dataProvider).removeItemAt(gridPmpNaoAssociado.selectedIndex);
+				}
+			}
+			private function associarCampo():void{
+				if(gridCampoNaoAssociado.selectedIndex == -1){
+					return;
+				}
+				if(gridCampoNaoAssociado.dataProvider != null && gridCampoNaoAssociado.selectedIndex != -1){
+					//					if(gridPmpAssociado.dataProvider != null){
+					//						listPmpAssociado.addAll(ArrayCollection(gridPmpAssociado.dataProvider)); 
+					//					}
+					//					listPmpAssociado.addItem(gridPmpNaoAssociado.selectedItem);
+					//					gridPmpAssociado.dataProvider = null;
+					ArrayCollection(gridCampoAssociado.dataProvider).addItem(gridCampoNaoAssociado.selectedItem);
+					ArrayCollection(gridCampoNaoAssociado.dataProvider).removeItemAt(gridCampoNaoAssociado.selectedIndex);
+				}
+			}
+			private function desassociarPmp():void{
+				if(gridPmpAssociado.selectedIndex == -1){
+					return;
+				}
+				if(gridPmpAssociado.dataProvider != null && gridPmpAssociado.selectedIndex != -1){
+					ArrayCollection(gridPmpNaoAssociado.dataProvider).addItem(gridPmpAssociado.selectedItem);
+					ArrayCollection(gridPmpAssociado.dataProvider).removeItemAt(gridPmpAssociado.selectedIndex);
+					//listPmpAssociado.removeAll();
+					//listPmpAssociado.addAll(ArrayCollection(gridPmpAssociado.dataProvider));
+				}
+				
+			}
+			private function desassociarCampo():void{
+				if(gridCampoAssociado.selectedIndex == -1){
+					return;
+				}
+				if(gridCampoAssociado.dataProvider != null && gridCampoAssociado.selectedIndex != -1){
+					ArrayCollection(gridCampoNaoAssociado.dataProvider).addItem(gridCampoAssociado.selectedItem);
+					ArrayCollection(gridCampoAssociado.dataProvider).removeItemAt(gridCampoAssociado.selectedIndex);
+					//listPmpAssociado.removeAll();
+					//listPmpAssociado.addAll(ArrayCollection(gridPmpAssociado.dataProvider));
+				}
+				
+			}
+			private function cancelar():void{
+				dispatchEvent(new Event('CANCELAR', true));
+			}
+			private function salvarSegmento():void{
+				if(gridCodigoAlarmePlAssociado.dataProvider.length == 0 && gridPmpAssociado.dataProvider.length == 0 && gridSosAssociado.dataProvider.length == 0){
+					Alert.show("Não é possível salvar o segmento sem nenhuma oportunidade associada!", "Alerta");
+					return;
+				}
+				this.segmentoBean.listPlAssociado = ArrayCollection(gridCodigoAlarmePlAssociado.dataProvider);
+				this.segmentoBean.listPmpAssociado = ArrayCollection(gridPmpAssociado.dataProvider);
+				this.segmentoBean.listSosAssociado = ArrayCollection(gridSosAssociado.dataProvider);
+				this.segmentoBean.listSmuAssociado = ArrayCollection(gridSmuAssociado.dataProvider);
+				if(isNovo == false){
+					dispatchEvent(new Event('SALVARSEGMENTO', true));
+				}else{
+					dispatchEvent(new Event('CRIARSEGMENTO', true));
+				}
+			}
+			public function imprimirRelatorio(evt:Event):void{
+				this.gerarReport();
+			}
+			public function imprimirRelatorioAssociado(evt:Event):void{
+				this.gerarReportAssociados();
+			}
+			
+			var url:URLRequest = new URLRequest("RelatorioSosArrefecimento");
+			public function gerarReport():void{
+				var uv:URLVariables = new URLVariables();
+				uv.serialNumber = SosBean(gridSos.selectedItem).serialNumber;
+				uv.processDate = SosBean(gridSos.selectedItem).processDate;
+				uv.compCode = SosBean(gridSos.selectedItem).compCode;
+				uv.manufacturer = SosBean(gridSos.selectedItem).manufacturer;
+				uv.model = SosBean(gridSos.selectedItem).model;
+				uv.compDesc = SosBean(gridSos.selectedItem).compDesc;
+				uv.customer = SosBean(gridSos.selectedItem).customer;
+				uv.equipNumber = SosBean(gridSos.selectedItem).equipNumber;
+				uv.jobsite = SosBean(gridSos.selectedItem).jobsite
+				if(SosBean(gridSos.selectedItem).tipoAnalise == "AO"){
+					url = new URLRequest("RelatorioSos");
+				}
+				generatePDF(uv);
+			}
+			
+			public function gerarReportAssociados():void{
+				var uv:URLVariables = new URLVariables();
+				uv.serialNumber = SosBean(gridSosAssociado.selectedItem).serialNumber;
+				uv.processDate = SosBean(gridSosAssociado.selectedItem).processDate;
+				uv.compCode = SosBean(gridSosAssociado.selectedItem).compCode;
+				uv.manufacturer = SosBean(gridSosAssociado.selectedItem).manufacturer;
+				uv.model = SosBean(gridSosAssociado.selectedItem).model;
+				uv.compDesc = SosBean(gridSosAssociado.selectedItem).compDesc;
+				uv.customer = SosBean(gridSosAssociado.selectedItem).customer;
+				uv.equipNumber = SosBean(gridSosAssociado.selectedItem).equipNumber;
+				uv.jobsite = SosBean(gridSosAssociado.selectedItem).jobsite
+				if(SosBean(gridSosAssociado.selectedItem).tipoAnalise == "AO"){
+					url = new URLRequest("RelatorioSos");
+				}	
+				generatePDF(uv);
+			}
+			
+			
+			private var urlReport:String = "";
+			private function onResultGetUrlReport(event:ResultEvent):void{
+				urlReport = String(event.result);
+				this.gerarReport();
+			}
+			
+			public function generatePDF(uv:URLVariables):void{
+				url.method = "GET";
+				url.data = uv;
+				navigateToURL(url,"_blank");
+			}
+			
+			
+			protected function onResultFindHorimetroDataAtualizacao(event:ResultEvent):void
+			{
+				this.dBean = DiagnosticoBean(event.result);
+				horimetro.text = String(dBean.detalhesDiagnosticoBean.horimetro);
+				dtUltimaAt.text = dBean.detalhesDiagnosticoBean.dataAtualizacaoHorimetro;
+			}
+			
+			private function abrirPopupObsRejeicao(ev:Event):void{
+				popupObsRejeicao = new PopupObsRejeicaoEmsSegmento();
+				popupObsRejeicao.addEventListener(CloseEvent.CLOSE,removePopupObsRejeicao);
+				PopUpManager.addPopUp(popupObsRejeicao,this,true);
+				PopUpManager.centerPopUp(popupObsRejeicao)
+				popupObsRejeicao.init(urlLogin,gridPmpNaoAssociado.selectedItem.idOsPalmDt, true, dBean.numeroSerie);						
+			}
+			
+			private function removePopupObsRejeicao(obj:CloseEvent):void{
+				serviceController.findAllOportunidadePmp(this.dBean.detalhesDiagnosticoBean.idOsPalm);
+				PopUpManager.removePopUp(obj.currentTarget as IFlexDisplayObject);
+			}
+			private function abrirPopupObsRejeicaoCampo(ev:Event):void{
+				popupObsRejeicao = new PopupObsRejeicaoEmsSegmento();
+				popupObsRejeicao.addEventListener(CloseEvent.CLOSE,removePopupObsRejeicaoCampo);
+				PopUpManager.addPopUp(popupObsRejeicao,this,true);
+				PopUpManager.centerPopUp(popupObsRejeicao)
+				popupObsRejeicao.init(urlLogin,gridCampoNaoAssociado.selectedItem.idOsPalmDt, false, dBean.numeroSerie);						
+			}
+			
+			private function removePopupObsRejeicaoCampo(obj:CloseEvent):void{
+				serviceController.findAllOportunidadeCampo(this.dBean.detalhesDiagnosticoBean.idOsPalmCampo);
+				PopUpManager.removePopUp(obj.currentTarget as IFlexDisplayObject);
+			}
+			private function abrirPopupObsRejeicaoPL(ev:Event):void{
+				popupObsRejeicaoPL = new PopupObsRejeicaoPLSegmento();
+				popupObsRejeicaoPL.addEventListener(CloseEvent.CLOSE,removePopupObsRejeicaoPL);
+				PopUpManager.addPopUp(popupObsRejeicaoPL,this,true);
+				PopUpManager.centerPopUp(popupObsRejeicaoPL)
+				popupObsRejeicaoPL.init(urlLogin,ConfigAlarmeBean(gridCodigoAlarmePLNaoAssociado.selectedItem), dBean.numeroSerie);						
+			}
+			
+			private function removePopupObsRejeicaoPL(obj:CloseEvent):void{
+				serviceController.findConfigAlarme(popupObsRejeicaoPL.configAlarmeBean.nivel,this.dBean.numeroSerie);
+				PopUpManager.removePopUp(obj.currentTarget as IFlexDisplayObject);
+			}
+			private function abrirPopupObsRejeicaoSMU(ev:Event):void{
+				popupObsRejeicaoSMU = new PopupObsRejeicaoSMU();
+				popupObsRejeicaoSMU.addEventListener(CloseEvent.CLOSE,removePopupObsRejeicaoSMU);
+				PopUpManager.addPopUp(popupObsRejeicaoSMU,this,true);
+				PopUpManager.centerPopUp(popupObsRejeicaoSMU)
+				popupObsRejeicaoSMU.init(urlLogin,SmuBean(gridSmuNaoAssociado.selectedItem), dBean.numeroSerie);						
+			}
+			
+			private function removePopupObsRejeicaoSMU(obj:CloseEvent):void{
+				serviceController.findAllSmu(this.dBean.numeroSerie);
+				PopUpManager.removePopUp(obj.currentTarget as IFlexDisplayObject);
+			}
+			private function abrirPopupObsRejeicaoSos(ev:Event):void{
+				popupObsRejeicaoSos  = new PopupObsRejeicaoSos();
+				popupObsRejeicaoSos.addEventListener(CloseEvent.CLOSE,removePopupObsSos);
+				PopUpManager.addPopUp(popupObsRejeicaoSos,this,true);
+				PopUpManager.centerPopUp(popupObsRejeicaoSos)
+				popupObsRejeicaoSos.init(urlLogin, SosBean(gridSos.selectedItem).textId);						
+			}
+			
+			private function removePopupObsSos(obj:CloseEvent):void{
+				serviceController.findAllSos(SosBean(gridSos.selectedItem).serialNumber, SosBean(gridSos.selectedItem).overallInterp);
+				PopUpManager.removePopUp(obj.currentTarget as IFlexDisplayObject);
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Dissolve id="dissolveOut" duration="1000" alphaFrom="1.0" alphaTo="0.0"/>
+	<mx:Dissolve id="dissolveIn" duration="1000" alphaFrom="0.0" alphaTo="1.0"/>
+	<mx:RemoteObject destination="service" invoke="{ProgressBarHelper.openProgressBar(this)}" id="serviceController" showBusyCursor="true" fault="ProgressBarHelper.erro(event,urlLogin);ProgressBarHelper.removeProgressBar()">
+		<mx:method name="findConfigAlarme" result="onResultFindConfigAlarme(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="findAllSos" result="onResultFindAllSos(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="findAllSmu" result="onResultFindAllSmu(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="findallPipPspGarantia" result="onResultFindallPipPspGarantia(event)" />
+		<mx:method name="findAllOportunidadePmp" result="onResultFindAllOportunidadePmp(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="findAllOportunidadeCampo" result="onResultFindAllOportunidadeCampo(event);ProgressBarHelper.removeProgressBar()" />
+		
+		<mx:method name="findAllSosAssociado" result="onResultFindAllSosAssociado(event)" />
+		<mx:method name="findAllPlAssociado" result="onResultFindAllPlAssociado(event)" />
+		<mx:method name="findAllPmpAssociado" result="onResultFindAllPmpAssociado(event)" />
+		<mx:method name="findAllCampoAssociado" result="onResultFindAllCampoAssociado(event)" />
+		<mx:method name="findAllSmuAssociado" result="onResultFindAllSmuAssociado(event);ProgressBarHelper.removeProgressBar()" />
+		
+		
+		<mx:method name="findHorimetroDataAtualizacao" result="onResultFindHorimetroDataAtualizacao(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="findHorimetroDataAtualizacao" result="onResultFindHorimetroDataAtualizacao(event);ProgressBarHelper.removeProgressBar()" />
+	</mx:RemoteObject>
+	<mx:HBox horizontalAlign="center" width="100%">
+		<!--mx:Panel width="250" height="200" layout="absolute" title="Teste alguem">
+		<mx:Label text="{data}"/>
+		</mx:Panel>
+		<mx:Panel width="250" height="200" layout="absolute" title="Teste Para data">
+		<mx:Label text="{data.dataAtualizacaoHorimetro}"/>
+		</mx:Panel-->
+		<mx:Panel width="210" height="200" layout="absolute" title="Máquina Sumário">
+			<mx:VBox verticalAlign="middle" width="100%" height="100%" horizontalAlign="center">
+				<mx:Label text="Série" id="serieStyle"  initialize="serieStyle.setStyle('fontWeight', 'bold')"/>
+				<mx:Label id="numSerie" textAlign="center"/>
+				<mx:Label text="Horímetro" id="horimetroStyle"  initialize="horimetroStyle.setStyle('fontWeight', 'bold')"/>
+				<mx:Label id="horimetro" textAlign="center"/>
+				<mx:Label text="Atualização Horímetro" id="dtUltimaAtStyle" initialize="dtUltimaAtStyle.setStyle('fontWeight', 'bold')"/>
+				<mx:Label id="dtUltimaAt" textAlign="center" width="160"/>
+			</mx:VBox>
+		</mx:Panel>
+		<mx:Panel width="210" height="200" layout="absolute" borderAlpha="1" title="Inspeção">
+			<mx:VBox verticalAlign="middle" horizontalAlign="center" width="100%" height="100%">
+				<mx:Label text="Dt. Última Inspeção Pmp" id="levelTxtPmpStyle" initialize="levelTxtPmpStyle.setStyle('fontWeight', 'bold')"/>
+				<mx:Label id="dataInspecao" textAlign="center"  click="dataInspecao_click(event)" buttonMode="true"/>
+				<mx:Label text="Dt. Última Inspeção Campo" id="levelTxtCampoStyle" initialize="levelTxtCampoStyle.setStyle('fontWeight', 'bold')"/>
+				<mx:Label id="dataInspecaoCampo" textAlign="center" click="dataInspecaoCampo_click(event)"  buttonMode="true"/>
+			</mx:VBox>
+		</mx:Panel>
+		<mx:Panel width="210" height="200" layout="absolute" title="Pmp">
+			<mx:VBox verticalAlign="middle"  width="100%" height="100%" horizontalAlign="center">
+				<mx:Label text="Tipo de Contrato" id="tpContratoStyle" initialize="tpContratoStyle.setStyle('fontWeight', 'bold')"/>
+				<mx:Label id="tpContrato" textAlign="center"/>
+				<mx:Label text="Data Aceite" id="dtAceiteStyle" initialize="dtAceiteStyle.setStyle('fontWeight', 'bold')"/>
+				<mx:Label id="dtAceite"  textAlign="center"/>
+			</mx:VBox>
+		</mx:Panel>
+		<mx:Panel width="210" height="200" layout="absolute" title="Diagnósticos PL" borderAlpha="1">
+			<mx:VBox verticalAlign="middle" horizontalAlign="center" width="100%" height="100%">
+				<mx:Label text="Nível 1" id="levelTxt1Style" initialize="levelTxt1Style.setStyle('fontWeight', 'bold')"/>
+				<mx:TextInput id="levelTxt1" width="60" textAlign="center" editable="false" cornerRadius="7" initialize="{levelTxt1.setStyle('backgroundColor','green')}" click="levelTxt1_changeHandler(event)" buttonMode="true"/>
+				<mx:Label text="Nível 2" id="levelTxt2Style" initialize="levelTxt2Style.setStyle('fontWeight', 'bold')"/>
+				<mx:TextInput id="levelTxt2" width="60" textAlign="center" editable="false" cornerRadius="7" initialize="{levelTxt2.setStyle('backgroundColor','yellow')}" click="levelTxt2_changeHandler(event)" buttonMode="true"/>
+				<mx:Label text="Nível 3" id="levelTxt3Style" initialize="levelTxt3Style.setStyle('fontWeight', 'bold')"/>
+				<mx:TextInput id="levelTxt3" width="60" textAlign="center" editable="false" cornerRadius="7" initialize="{levelTxt3.setStyle('backgroundColor','red')}" click="levelTxt3_changeHandler(event)" buttonMode="true"/>
+			</mx:VBox>
+		</mx:Panel>
+		
+		<mx:Panel width="210" height="200" layout="absolute" title="Sos" borderAlpha="1">
+			<mx:VBox verticalAlign="middle" horizontalAlign="center" width="100%" height="100%">
+				<mx:Label text="Normal" id="normalStyle" initialize="normalStyle.setStyle('fontWeight', 'bold')"/>
+				<mx:TextInput id="sosNormal" width="60" textAlign="center" cornerRadius="7" editable="false" initialize="{sosNormal.setStyle('backgroundColor','green')}" click="sosNormal_changeHandler(event)" buttonMode="true"/>
+				<mx:Label text="Monitorar" id="monitorarStyle" initialize="monitorarStyle.setStyle('fontWeight', 'bold')"/>
+				<mx:TextInput id="sosMonitorar" width="60" textAlign="center" cornerRadius="7" editable="false" initialize="{sosMonitorar.setStyle('backgroundColor','yellow')}" click="sosMonitorar_changeHandler(event)" buttonMode="true"/>
+				<mx:Label text="Crítico" id="criticoStyle" initialize="criticoStyle.setStyle('fontWeight', 'bold')"/>
+				<mx:TextInput id="sosCritico" width="60" textAlign="center" cornerRadius="7" editable="false" initialize="{sosCritico.setStyle('backgroundColor','red')}" click="sosCritico_changeHandler(event)" buttonMode="true"/>
+			</mx:VBox>
+		</mx:Panel>
+		<mx:Panel width="210" height="200" layout="absolute" borderAlpha="1" title="Garantia">
+			<mx:VBox verticalAlign="middle" horizontalAlign="center" width="100%" height="100%">
+				<mx:Label text="Data Inicio" height="21"/>
+				<mx:TextInput id="dataInicio" editable="false" textAlign="center" />
+				<mx:Label text="Data Fim" height="21"/>
+				<mx:TextInput id="dataFim" editable="false" textAlign="center"/>
+				<mx:Label text="PIP/PSP" height="21" />
+				<mx:TextInput id="pipPsp" editable="false" textAlign="center"/>
+			</mx:VBox>
+		</mx:Panel>
+		<mx:Panel width="210" height="200" layout="absolute" title="SMU" borderAlpha="1">
+			<mx:VBox verticalAlign="middle" horizontalAlign="center" width="100%" height="100%">
+				<mx:Label text="Crítico" id="criticoStyle0" initialize="criticoStyle.setStyle('fontWeight', 'bold')"/>
+				<mx:TextInput id="smuCritico" width="60" textAlign="center" cornerRadius="7" editable="false" initialize="{smuCritico.setStyle('backgroundColor','red')}" click="smuCritico_changeHandler(event)" buttonMode="true"/>
+			</mx:VBox>
+		</mx:Panel>
+		
+	</mx:HBox>
+	<mx:TabNavigator id="tn" x="0" y="208"  width="100%" height="100%" color="0x323232" creationPolicy="all">
+		<mx:VBox x="0" y="0" width="100%" height="100%" label="Oportunidades PL">
+			
+			<mx:HBox x="0" y="0" width="100%">
+				<mx:ApplicationControlBar width="50%" horizontalAlign="left">
+					<mx:Label text="PL não Associado" fontWeight="bold"/>
+				</mx:ApplicationControlBar>
+				<mx:ApplicationControlBar width="50%" horizontalAlign="left">
+					<mx:Label text="PL Associado" fontWeight="bold"/>
+				</mx:ApplicationControlBar>
+			</mx:HBox>
+			<mx:HBox width="100%" height="100%">
+				<mx:DataGrid height="100%" width="50%" variableRowHeight="true" id="gridCodigoAlarmePLNaoAssociado" hideEffect="{dissolveOut}" showEffect="{dissolveIn}"
+							 doubleClickEnabled="true" doubleClick="associarPl()">
+					<mx:columns>
+						<mx:DataGridColumn headerText="Tipo&#13;Alarme" dataField="descTipoAlarme" width="65"/>
+						<mx:DataGridColumn headerText="Código&#13;MID" dataField="codigo" width="35"/>
+						<mx:DataGridColumn headerText="Código&#13;CID" dataField="codigoCidStr" width="35"/>
+						<mx:DataGridColumn headerText="Código&#13;FMI" dataField="codigoFmiStr" width="35"/>
+						<mx:DataGridColumn headerText="Código&#13;EID" dataField="codigoEidStr" width="35"/>
+						<mx:DataGridColumn headerText="Total" dataField="totalOcorrencias" width="35"/>
+						<mx:DataGridColumn headerText="Evento&#13;Diagnósticos">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center" >
+										<mx:TextArea  textAlign="center" height="90" text="{data.eventoDiagnostico}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>	
+						
+						<mx:DataGridColumn headerText="Compartimento">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:TextArea  textAlign="center" height="90" text="{data.compartimento}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>	
+						<mx:DataGridColumn headerText="Possíveis&#13;Causas">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:TextArea  textAlign="center"  height="90" text="{data.possiveisCausas}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>	
+						<mx:DataGridColumn headerText="SOS">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:TextArea  textAlign="center" height="90" text="{data.indicadoresSos}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>	
+						<mx:DataGridColumn headerText="PM e TA">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:TextArea  textAlign="center" height="90" text="{data.pmTa}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>	
+						<mx:DataGridColumn headerText="Ações&#13;Recomend.">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:TextArea  textAlign="center" height="90" text="{data.acoesRecomendadas}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>
+						<mx:DataGridColumn headerText="Obs.&#13;Rejeitar." width="55">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:Image source="img/detailed.png" width="15" buttonMode="true" height="15" click="{dispatchEvent(new Event('REJEITARPL', true))}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>
+
+					</mx:columns>
+				</mx:DataGrid>
+				<mx:DataGrid height="100%" variableRowHeight="true" width="50%" id="gridCodigoAlarmePlAssociado" hideEffect="{dissolveOut}" showEffect="{dissolveIn}"
+							 doubleClick="desassociarPl()" doubleClickEnabled="true">
+					<mx:columns>
+						<mx:DataGridColumn headerText="Tipo&#13;Alarme" dataField="descTipoAlarme" width="65"/>
+						<mx:DataGridColumn headerText="Código&#13;MID" dataField="codigo" width="55"/>
+						<mx:DataGridColumn headerText="Código&#13;CID" dataField="codigoCidStr" width="55"/>
+						<mx:DataGridColumn headerText="Código&#13;FMI" dataField="codigoFmiStr" width="55"/>
+						<mx:DataGridColumn headerText="Código&#13;EID" dataField="codigoEidStr" width="55"/>
+						<mx:DataGridColumn headerText="Total" dataField="totalOcorrencias" width="55"/>
+						<mx:DataGridColumn headerText="Evento&#13;Diagnósticos">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:TextArea  textAlign="center" height="90" text="{data.eventoDiagnostico}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>	
+						
+						<mx:DataGridColumn headerText="Compartimento">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:TextArea  textAlign="center" height="90" text="{data.compartimento}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>	
+						<mx:DataGridColumn headerText="Possíveis&#13;Causas">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:TextArea  textAlign="center"  height="90" text="{data.possiveisCausas}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>	
+						<mx:DataGridColumn headerText="SOS">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:TextArea  textAlign="center" height="90" text="{data.indicadoresSos}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>	
+						<mx:DataGridColumn headerText="PM e TA">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:TextArea  textAlign="center" height="90" text="{data.pmTa}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>	
+						<mx:DataGridColumn headerText="Ações&#13;Recomend.">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:TextArea  textAlign="center" height="90" text="{data.acoesRecomendadas}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>	
+					</mx:columns>
+				</mx:DataGrid>
+			</mx:HBox>
+		</mx:VBox>	
+		<mx:VBox x="0" y="0" width="100%" height="100%" label="Oportunidades SOS">
+			<mx:HBox x="0" y="0" width="100%">
+				<mx:ApplicationControlBar width="50%" horizontalAlign="left">
+					<mx:Label text="SOS não Associado" fontWeight="bold"/>
+				</mx:ApplicationControlBar>
+				<mx:ApplicationControlBar width="50%" horizontalAlign="left">
+					<mx:Label text="SOS Associado" fontWeight="bold"/>
+				</mx:ApplicationControlBar>
+			</mx:HBox>
+			<mx:HBox width="100%" height="100%">
+				<mx:DataGrid height="100%" width="50%" variableRowHeight="true" rowHeight="100" id="gridSos" hideEffect="{dissolveOut}" showEffect="{dissolveIn}"
+							 doubleClickEnabled="true" doubleClick="associarSos()">
+					<mx:columns>
+						<mx:DataGridColumn headerText="Data Coleta" dataField="interpDateTime" width="55"/>
+						<mx:DataGridColumn headerText="Compartimento" dataField="compDesc" width="55"/>
+						<mx:DataGridColumn headerText="Local Coleta"  dataField="jobsite" width="55"/>
+						<mx:DataGridColumn headerText="Interpretação"  dataField="interpretationText" width="55">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:TextArea  textAlign="center"  height="100" text="{data.interpretationText}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>
+						<mx:DataGridColumn headerText="Detalhes" width="80" >
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:Image source="img/pdf.png" width="15" buttonMode="true" height="15" click="{dispatchEvent(new Event('IMPRIMIRRELATORIO', true))}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>
+						<mx:DataGridColumn headerText="Obs.&#13;Rejeitar." width="55">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:Image source="img/remover.png" width="15" buttonMode="true" height="15" click="{dispatchEvent(new Event('REJEITARSOS', true))}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>
+					</mx:columns>
+				</mx:DataGrid>
+				<mx:DataGrid height="100%" width="50%" variableRowHeight="true" rowHeight="100" id="gridSosAssociado" hideEffect="{dissolveOut}" showEffect="{dissolveIn}"
+							 doubleClickEnabled="true" doubleClick="desassociarSos()">
+					<mx:columns>
+						<mx:DataGridColumn headerText="Data Coleta" dataField="interpDateTime" width="55"/>
+						<mx:DataGridColumn headerText="Compartimento" dataField="compDesc" width="55"/>
+						<mx:DataGridColumn headerText="Local Coleta"  dataField="jobsite" width="55"/>
+						<mx:DataGridColumn headerText="Interpretação"  dataField="interpretationText" width="55">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:TextArea  textAlign="center"  height="100" text="{data.interpretationText}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>
+						<mx:DataGridColumn headerText="Detalhes" width="80" >
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:Image source="img/pdf.png" width="15" buttonMode="true" height="15" click="{dispatchEvent(new Event('IMPRIMIRRELATORIOASSOCIADAO', true))}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>
+					</mx:columns>
+				</mx:DataGrid>
+			</mx:HBox>
+			
+			<!--componente:InspecaoPmpTree width="100%" height="100%" id="inspecaoPMPTree" visible="false" includeInLayout="false" hideEffect="{dissolveOut}" showEffect="{dissolveIn}">
+			</componente:InspecaoPmpTree-->
+		</mx:VBox>
+		
+		<mx:VBox x="0" y="0" width="100%" height="100%" label="Oportunidades Pmp">
+			
+			<mx:HBox x="0" y="0" width="100%">
+				<mx:ApplicationControlBar width="50%" horizontalAlign="left">
+					<mx:Label text="Pmp não Associado" fontWeight="bold"/>
+				</mx:ApplicationControlBar>
+				<mx:ApplicationControlBar width="50%" horizontalAlign="left">
+					<mx:Label text="Pmp Associado" fontWeight="bold"/>
+				</mx:ApplicationControlBar>
+			</mx:HBox>
+			<mx:HBox width="100%" height="100%">
+				<mx:DataGrid height="100%" width="50%" variableRowHeight="true" rowHeight="100" id="gridPmpNaoAssociado" doubleClickEnabled="true" doubleClick="associarPmp()">
+					<mx:columns>
+						<mx:DataGridColumn headerText="Oprotunidade" dataField="descricao"/>
+						<mx:DataGridColumn headerText="Observação" dataField="obs">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:TextArea  textAlign="center"  height="100" text="{data.obs}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>
+						<mx:DataGridColumn headerText="Obs. Cabeçalho" dataField="obsCabecalho">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:TextArea  textAlign="center"  height="100" text="{data.obsCabecalho}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>
+						<mx:DataGridColumn headerText="TipoManutenção" dataField="tipoManutencao"/>
+						<mx:DataGridColumn headerText="Obs.&#13;Rejeição.">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:Image source="img/detailed.png" width="15" buttonMode="true" height="15" click="{dispatchEvent(new Event('SALVAROBSREJEICAO', true))}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>	
+					</mx:columns>
+				</mx:DataGrid>
+				<mx:DataGrid height="100%" width="50%" id="gridPmpAssociado" variableRowHeight="true" rowHeight="100" doubleClickEnabled="true" doubleClick="desassociarPmp()">
+					<mx:columns>
+						<mx:DataGridColumn headerText="Oprotunidade" dataField="descricao"/>
+						<mx:DataGridColumn headerText="Observação" dataField="obs">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:TextArea  textAlign="center"  height="100" text="{data.obs}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>
+						<mx:DataGridColumn headerText="Obs. Cabeçalho" dataField="obsCabecalho">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:TextArea  textAlign="center"  height="100" text="{data.obsCabecalho}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>
+						<mx:DataGridColumn headerText="TipoManutenção" dataField="tipoManutencao"/>
+					</mx:columns>
+				</mx:DataGrid>
+			</mx:HBox>
+		</mx:VBox>	
+		<mx:VBox x="0" y="0" width="100%" height="100%" label="Oportunidades Campo">
+			
+			<mx:HBox x="0" y="0" width="100%">
+				<mx:ApplicationControlBar width="50%" horizontalAlign="left">
+					<mx:Label text="Campo não Associado" fontWeight="bold"/>
+				</mx:ApplicationControlBar>
+				<mx:ApplicationControlBar width="50%" horizontalAlign="left">
+					<mx:Label text="Campo Associado" fontWeight="bold"/>
+				</mx:ApplicationControlBar>
+			</mx:HBox>
+			<mx:HBox width="100%" height="100%">
+				<mx:DataGrid height="100%" width="50%" variableRowHeight="true" rowHeight="100" id="gridCampoNaoAssociado" doubleClickEnabled="true" doubleClick="associarCampo()">
+					<mx:columns>
+						<mx:DataGridColumn headerText="Oprotunidade" dataField="descricao"/>
+						<mx:DataGridColumn headerText="Observação" dataField="obs">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:TextArea  textAlign="center"  height="100" text="{data.obs}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>
+						<mx:DataGridColumn headerText="Obs. Cabeçalho" dataField="obsCabecalho">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:TextArea  textAlign="center"  height="100" text="{data.obsCabecalho}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>
+						<mx:DataGridColumn headerText="TipoManutenção" dataField="tipoManutencao"/>
+						<mx:DataGridColumn headerText="Obs.&#13;Rejeição.">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:Image source="img/detailed.png" width="15" buttonMode="true" height="15" click="{dispatchEvent(new Event('SALVAROBSREJEICAOCAMPO', true))}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>	
+					</mx:columns>
+				</mx:DataGrid>
+				<mx:DataGrid height="100%" width="50%" id="gridCampoAssociado" variableRowHeight="true" rowHeight="100" doubleClickEnabled="true" doubleClick="desassociarCampo()">
+					<mx:columns>
+						<mx:DataGridColumn headerText="Oprotunidade" dataField="descricao"/>
+						<mx:DataGridColumn headerText="Observação" dataField="obs">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:TextArea  textAlign="center"  height="100" text="{data.obs}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>
+						<mx:DataGridColumn headerText="Obs. Cabeçalho" dataField="obsCabecalho">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:TextArea  textAlign="center"  height="100" text="{data.obsCabecalho}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>
+						<mx:DataGridColumn headerText="TipoManutenção" dataField="tipoManutencao"/>
+					</mx:columns>
+				</mx:DataGrid>
+			</mx:HBox>
+		</mx:VBox>	
+		<mx:VBox x="0" y="0" width="100%" height="100%" label="SMU">
+			
+			<mx:HBox x="0" y="0" width="100%">
+				<mx:ApplicationControlBar width="50%" horizontalAlign="left">
+					<mx:Label text="SMU não Associado" fontWeight="bold"/>
+				</mx:ApplicationControlBar>
+				<mx:ApplicationControlBar width="50%" horizontalAlign="left">
+					<mx:Label text="SMU Associado" fontWeight="bold"/>
+				</mx:ApplicationControlBar>
+			</mx:HBox>
+			<mx:HBox width="100%" height="100%">
+				<mx:DataGrid height="100%" width="50%" variableRowHeight="true" rowHeight="100" id="gridSmuNaoAssociado" doubleClickEnabled="true" doubleClick="associarSmu()">
+					<mx:columns>
+						<mx:DataGridColumn headerText="Horímetro&#13;Anterior" dataField="horimetroAnterior"/>
+						<mx:DataGridColumn headerText="Próxima&#13;Anterior" dataField="horimetroProximo"/>
+						<mx:DataGridColumn headerText="Tipo&#13;Serviço" dataField="tipoServico"/>
+						<mx:DataGridColumn headerText="Data" dataField="data"/>
+						
+						<mx:DataGridColumn headerText="Obs.&#13;Rejeição.">
+							<mx:itemRenderer> 
+								<mx:Component>
+									<mx:VBox verticalGap="2" horizontalAlign="center">
+										<mx:Image source="img/detailed.png" width="15" buttonMode="true" height="15" click="{dispatchEvent(new Event('SALVAROBSREJEICAOSMU', true))}"/>
+									</mx:VBox>
+								</mx:Component> 
+							</mx:itemRenderer>
+						</mx:DataGridColumn>	
+					</mx:columns>
+				</mx:DataGrid>
+				<mx:DataGrid height="100%" width="50%" id="gridSmuAssociado" variableRowHeight="true" rowHeight="100" doubleClickEnabled="true" doubleClick="desassociarSmu()">
+					<mx:columns>
+						<mx:DataGridColumn headerText="Horímetro&#13;Anterior" dataField="horimetroAnterior"/>
+						<mx:DataGridColumn headerText="Próxima&#13;Anterior" dataField="horimetroProximo"/>
+						<mx:DataGridColumn headerText="Tipo&#13;Serviço" dataField="tipoServico"/>
+						<mx:DataGridColumn headerText="Data" dataField="data"/>
+					</mx:columns>
+				</mx:DataGrid>
+			</mx:HBox>
+		</mx:VBox>	
+	</mx:TabNavigator>
+	<!--mx:HBox width="100%" x="0" y="736" horizontalAlign="center">
+	<mx:Button label="Salvar" click="salvarSegmento()"/>
+	<mx:Button label="Cancelar" click="cancelar()"/>
+	</mx:HBox-->
+</mx:Canvas>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%">
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.rpc.events.ResultEvent;
+			
+			import util.ProgressBarHelper;
+
+			private var urlLogin:String;
+			public function init(urlLogin:String):void{
+				this.urlLogin = urlLogin;
+				serviceController.findAllPropostaOrcamento("");
+			}
+			private function onResultFindAllPropostaOrcamento(event:ResultEvent):void{
+				gridOportunidadesOrcamento.dataProvider = ArrayCollection(event.result);
+			}
+
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				serviceController.findAllPropostaOrcamento(campoPesquisaTxt.text);
+			}
+
+		]]>
+	</mx:Script>
+	<mx:RemoteObject destination="service" invoke="{ProgressBarHelper.openProgressBar(this)}" id="serviceController" showBusyCursor="true" fault="{ProgressBarHelper.erro(event,urlLogin);ProgressBarHelper.removeProgressBar();}">
+		<mx:method name="findAllPropostaOrcamento" result="onResultFindAllPropostaOrcamento(event);ProgressBarHelper.removeProgressBar()" />
+	</mx:RemoteObject>
+	<mx:ApplicationControlBar x="0" y="0"  width="100%" horizontalAlign="center">
+		<mx:Label text="Oportunidades em Orçamento" fontWeight="bold"/>
+	</mx:ApplicationControlBar>
+	<mx:DataGrid x="0" y="68" width="100%" height="100%" id="gridOportunidadesOrcamento">
+		<mx:columns>
+			<mx:DataGridColumn headerText="Série" dataField="numSerie"/>
+			<mx:DataGridColumn headerText="Modelo" dataField="modelo"/>
+			<mx:DataGridColumn headerText="Data" dataField="dataOportunidade"/>
+			<mx:DataGridColumn headerText="Obs" dataField="observacao">
+			<!--mx:itemRenderer> 
+				<mx:Component>
+					<mx:VBox verticalGap="2" horizontalAlign="center">
+						<mx:TextArea width="60" text="{data.observacao}"/>
+					</mx:VBox>
+				</mx:Component> 
+			</mx:itemRenderer-->
+				</mx:DataGridColumn>
+			<mx:DataGridColumn headerText="Cod. Cliente" dataField="codigoCiente"/>
+			<mx:DataGridColumn headerText="Funcionário" dataField="nomeFuncionario"/>
+			<mx:DataGridColumn headerText="Filial" dataField="filialStr"/>
+		</mx:columns>
+	</mx:DataGrid>
+	<mx:Label text="Série" height="21" x="66" y="37"/>
+	<mx:TextInput id="campoPesquisaTxt" toolTip="Pesquisar por série, modelo e Nome do Cliente." x="117" y="36"/>
+	<mx:Button label="Pesquisar"  x="291" y="36" click="button1_clickHandler(event)"/>
+	
+</mx:Canvas>

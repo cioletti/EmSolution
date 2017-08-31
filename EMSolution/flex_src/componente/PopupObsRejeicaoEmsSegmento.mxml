@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<util:ModuleTitleWindow title="Observação do agendamento" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:util="util.*" layout="absolute" width="400" height="250">
+	
+	<mx:Script>
+		<![CDATA[
+			import bean.ConfigAlarmeBean;
+			
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import util.ProgressBarHelper;
+			private var urlLogin:String;
+			private var isPmp:Boolean;
+			private var idOsPalmDt:Number;
+			private var numeroSerie:String;
+			
+			public function init(urlLogin:String, idOsPalmDt:Number, isPmp:Boolean, numeroSerie:String):void{
+				this.urlLogin = urlLogin;		
+				this.idOsPalmDt = idOsPalmDt;
+				this.isPmp = isPmp;
+				this.numeroSerie = numeroSerie;
+			}
+			
+			
+			private function saveObsRejeicao():void{
+				if(obsText.text != ""){
+					if(this.isPmp){
+						serviceController.saveRejeicaoSegmento(this.idOsPalmDt,obsText.text, this.numeroSerie);
+					}else{
+						serviceController.saveRejeicaoCampoSegmento(this.idOsPalmDt,obsText.text, this.numeroSerie);
+					}
+				}else{
+					Alert.show("O campo de observação é obrigatório.", "Alerta!");
+				}
+			}
+			
+			private function onResultsaveRejeicaoSegmento(event:ResultEvent):void{
+				if(event.result != false){
+					Alert.show("Operação realizada com sucesso.", "Alerta!");	
+					this.close();
+				}else{
+					Alert.show("Ocorreu um erro ao realizar a operação.","Alerta!");
+				}
+			}
+			private function fecharPopUp():void{
+				this.close();
+			}
+
+		]]>
+	</mx:Script>
+	
+	<mx:RemoteObject destination="service" invoke="{ProgressBarHelper.openProgressBar(this)}" id="serviceController" showBusyCursor="true" fault="ProgressBarHelper.erro(event, urlLogin);ProgressBarHelper.removeProgressBar()">
+		<mx:method name="saveRejeicaoSegmento" result="onResultsaveRejeicaoSegmento(event);ProgressBarHelper.removeProgressBar()" />
+		<mx:method name="saveRejeicaoCampoSegmento" result="onResultsaveRejeicaoSegmento(event);ProgressBarHelper.removeProgressBar()" />
+	</mx:RemoteObject>
+	
+	<mx:TextArea id="obsText"  width="324" height="161" x="28" y="10"/>
+	<mx:Button id="salvarObsAgBtn" x="130" y="179" label="Salvar" click="saveObsRejeicao()" />	
+	<mx:Button id="cancelar" x="200" y="179" label="Cancelar" enabled="true" click="fecharPopUp()"/>	
+	
+</util:ModuleTitleWindow>
