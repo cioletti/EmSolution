@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="4.Condições Prest.Serviços" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.100000000000005"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String">
+		<defaultValueExpression><![CDATA["C:\\SVN_PESA\\web\\GestaoEquipamentosPesa\\WebContent\\WEB-INF\\proposta\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FILIAL" class="java.lang.String"/>
+	<parameter name="EXEC_SERVICO" class="java.lang.String"/>
+	<parameter name="valor_mao_de_obra" class="java.math.BigDecimal"/>
+	<parameter name="total_servico_terceiros" class="java.math.BigDecimal"/>
+	<parameter name="total_pecas" class="java.math.BigDecimal"/>
+	<parameter name="observacao" class="java.lang.String"/>
+	<parameter name="condicaoPagamento" class="java.lang.String"/>
+	<parameter name="prazoEntrega" class="java.math.BigDecimal"/>
+	<parameter name="validadeProposta" class="java.sql.Timestamp"/>
+	<parameter name="USUARIO" class="java.lang.String"/>
+	<parameter name="aprovacaoPropostaServico" class="java.lang.String"/>
+	<parameter name="obsProposta" class="java.lang.String"/>
+	<parameter name="PORC_FRETE" class="java.lang.String"/>
+	<parameter name="ID_CHECHIN" class="java.math.BigDecimal"/>
+	<parameter name="PORC_SERV_TERC" class="java.lang.String"/>
+	<parameter name="OBS" class="java.lang.String"/>
+	<parameter name="IMPRIMIR_PECAS" class="java.lang.String"/>
+	<parameter name="TOTAL_DESLOCAMENTO" class="java.math.BigDecimal"/>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<field name="descricao" class="java.lang.String"/>
+	<field name="observacao" class="java.lang.String"/>
+	<field name="valor_total_hora" class="java.math.BigDecimal"/>
+	<field name="serv_terceiros" class="java.math.BigDecimal"/>
+	<field name="total_pecas" class="java.math.BigDecimal"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="749">
+			<staticText>
+				<reportElement x="332" y="561" width="21" height="20"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="430" width="139" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Autorizado por:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="141" y="510" width="410" height="20"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{USUARIO}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="470" width="139" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Data de Aprovação:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="390" width="139" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Valor:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="209" y="561" width="51" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[Fone:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="164" y="306" width="180" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Prazo de Entrega]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="370" width="272" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[ORDEM DE FATURAMENTO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="127" y="667" width="209" height="43"/>
+				<textElement textAlignment="Center"/>
+				<text><![CDATA[____________________________________
+  Carimbo da empresa/ Assinatura do Cliente]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="260" y="561" width="21" height="20"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="0" y="326" width="151" height="20" backcolor="#CCCCCC"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{condicaoPagamento}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="561" width="188" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Proposta Aprovada pelo Cliente por:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="355" y="307" width="196" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Validade da proposta de serviço]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="306" width="151" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Condições de pagamento]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="279" y="370" width="272" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[APROVAÇÃO DA PROPOSTA DE SERVIÇO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="510" width="139" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Orçamentista:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="281" y="561" width="51" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[Fax:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="164" y="326" width="180" height="20" backcolor="#CCCCCC"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{prazoEntrega}+" DIAS ÚTEIS"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="357" y="327" width="194" height="20" backcolor="#CCCCCC"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression class="java.sql.Timestamp"><![CDATA[$P{validadeProposta}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="410" width="176" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Condições de pagamento:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="450" width="139" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Preenchido por:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="336" y="667" width="205" height="43"/>
+				<textElement textAlignment="Center"/>
+				<text><![CDATA[____________________________________
+  Encarregado]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="353" y="561" width="51" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[E-mail:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="598" width="555" height="31"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Estou (amos) de pleno acordo com as condições gerais constantes nesta Proposta de Serviços.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="667" width="127" height="43"/>
+				<textElement textAlignment="Center"/>
+				<text><![CDATA[_____________________
+  Local e Data]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="490" width="139" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Endereço:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="188" y="561" width="21" height="20"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" pattern="¤ #,##0.00" isBlankWhenNull="true">
+				<reportElement x="461" y="29" width="94" height="20"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$P{valor_mao_de_obra}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="348" y="129" width="113" height="20"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<text><![CDATA[TOTAL GERAL:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="348" y="0" width="207" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<text><![CDATA[VALORES DA PROPOSTA]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" pattern="¤ #,##0.00" isBlankWhenNull="true">
+				<reportElement x="461" y="69" width="94" height="20"/>
+				<box>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$P{valor_mao_de_obra}.add($P{total_servico_terceiros})]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="348" y="151" width="100" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<text><![CDATA[Observação:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" pattern="¤ #,##0.00" isBlankWhenNull="true">
+				<reportElement x="461" y="129" width="94" height="20"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$P{valor_mao_de_obra}.add($P{total_servico_terceiros}).add($P{total_pecas}).add($P{TOTAL_DESLOCAMENTO})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="348" y="171" width="207" height="133"/>
+				<box>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{observacao}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="¤ #,##0.00" isBlankWhenNull="true">
+				<reportElement x="461" y="89" width="94" height="20"/>
+				<box>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$P{total_pecas}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="348" y="29" width="113" height="20"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<text><![CDATA[MÃO DE OBRA:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="348" y="49" width="113" height="20"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<text><![CDATA[RECUPERAÇÕES:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" pattern="¤ #,##0.00" isBlankWhenNull="true">
+				<reportElement x="461" y="49" width="94" height="20"/>
+				<box>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$P{total_servico_terceiros}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="348" y="69" width="113" height="20"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<text><![CDATA[TOTAL DE SERVIÇOS:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="0" width="336" height="304"/>
+				<textElement textAlignment="Justified">
+					<font size="10"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<text><![CDATA[GARANTIA: Sobre os serviço executados oferecemos a nossa costumeira “Garantia de Serviço” representada pela repetição, por nossa conta, em nossas oficinas, dos serviços porventura incorretamente executados, no período de 6 meses após a entrega do objeto consertado, desde que as irregularidades sejam comunicadas imediatamente e devidamente comprovadas. Nenhuma outra qualquer, seja qual for, será estendida e em nenhum caso seremos responsáveis por perdas posteriores, danos indiretos, ou lucros cessantes. Essa garantia é valida quando da aplicação de peças originais. No caso de aplicação de peças genéricas a garantia será de 3 meses.
+PERIÓDO DE NEGOCIAÇÃO: Cláusula I - Caso os serviços elencados nesta proposta de serviço não sejam autorizados pelo cliente, o equipamento/componente do mesmo será retirado do pátio da PESA, mediante o pagamento do custo da desmontagem para a realização do orçamento, do serviço de análise e da elaboração de orçamento, bem como o frete de retorno do equipamento/componente para o cliente; Cláusula II - Caso o equipamento/componente descrito nesta proposta de serviço permaneça nas oficinas da PESA por prazo superior a 90 (noventa) dias, será devido pelo cliente o valor correspondente a desmontagem para a realização do orçamento, o serviço de análise e elaboração de orçamento, bem como o frete, quando houver a necessidade de remessa do equipamento/componente para realização de orçamento/análise em outra unidade da PESA.
+De acordo........................................................    /   /     .
+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="348" y="89" width="113" height="20"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<text><![CDATA[TOTAL DE PEÇAS:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="348" y="109" width="113" height="20"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<text><![CDATA[TOTAL DE DESLOC:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" pattern="¤ #,##0.00" isBlankWhenNull="true">
+				<reportElement x="461" y="109" width="94" height="20"/>
+				<box>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$P{TOTAL_DESLOCAMENTO}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+</jasperReport>

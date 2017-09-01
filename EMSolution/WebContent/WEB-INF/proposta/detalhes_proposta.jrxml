@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="detalhes_proposta" pageWidth="555" pageHeight="802" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="id_check_in" class="java.math.BigDecimal"/>
+	<parameter name="PORC_SERV_TERC" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select s.NUMERO_SEGMENTO +' '+ s.DESCRICAO_JOB_CODE+' - '+ s.DESCRICAO_COMP_CODE descricao, CONVERT( VARCHAR(8000),s.OBSERVACAO) observacao,
+ISNULL(seg.valor_total_hora,0) valor_total_hora, seg.serv_terceiros,
+(select CASE WHEN sum(CASE WHEN p.valor_total is null then 0 else p.valor_total end) is null then 0 else sum(CASE WHEN p.valor_total is null then 0 else p.valor_total end) end
+from EMS_PECAS p, ems_segmento seg
+where p.ID_EMS_SEGMENTO = seg.ID
+and seg.ID_PROPOSTA = s.ID_PROPOSTA
+and s.id = seg.ID
+) total_pecas
+
+from ems_segmento s,
+	(select seg1.ID_PROPOSTA, seg1.id,seg1.numero_segmento, seg1.descricao_job_code+' / '+seg1.descricao_comp_code descricao, seg1.qtd_comp, seg1.horas_prevista,
+	(
+	select (((((pre.valor_de_venda * ch.fator_cliente)*
+								(select c.fator from SC_COMPLEXIDADE c
+								where c.id =
+								(select p.id_complexidade from SC_PRECO p where p.ID_PREFIXO = (select pre.ID from SC_PREFIXO  pre where pre.DESCRICAO = ch.PREFIXO and pre.ID_MODELO_FAMILIA = (select mf.ID from SC_MODELO_FAMILIA mf where mf.MODELO = ch.MODELO and mf.ID_FAMILIA = ch.ID_FAMILIA_CAMPO))
+								 and p.id_prefixo = (select pre.id from SC_PREFIXO pre where pre.descricao = ch.PREFIXO and pre.ID_MODELO_FAMILIA = (select mf.ID from SC_MODELO_FAMILIA mf where mf.MODELO = ch.MODELO and mf.ID_FAMILIA = ch.ID_FAMILIA_CAMPO))
+								 and p.comp_code = seg.com_code
+								 and p.job_code = seg.job_code )
+								) * CASE WHEN ch.fator_urgencia = 'S'
+					 THEN (select fator_urgencia from SC_FATOR) ELSE 1 END))) * seg.qtd_comp)  * convert(decimal(10,2),seg.horas_prevista)
+
+								from EMS_PROPOSTA ch, EMS_SEGMENTO seg, SC_PREFIXO pre
+								where ch.id = seg1.ID_PROPOSTA
+								and pre.descricao = ch.PREFIXO
+				  and seg.id = seg1.id
+	 and pre.ID_MODELO_FAMILIA = (select mf.ID from SC_MODELO_FAMILIA mf where mf.MODELO = ch.MODELO and mf.ID_FAMILIA = ch.ID_FAMILIA_CAMPO)
+
+	) valor_total_hora,
+	(
+	 select CASE WHEN sum(CASE WHEN st.valor is null then 0 else st.valor end) is null then 0 else sum(CASE WHEN st.valor is null then 0 else st.valor end) end   from EMS_SEGMENTO seg, EMS_SEGMENTO_SERV_TERCEIROS st
+				  		where seg.id = st.ID_EMS_SEGMENTO
+				  		and seg.id = seg1.id
+	) * convert(decimal(10,2),$P{PORC_SERV_TERC})   serv_terceiros, seg1.id as id_segmento
+
+	from EMS_SEGMENTO seg1
+
+	) seg
+where  s.NUMERO_SEGMENTO = seg.numero_segmento
+and s.ID_PROPOSTA = seg.id_proposta
+and s.ID = seg.id
+and s.ID_PROPOSTA = $P{id_check_in}
+order by s.NUMERO_SEGMENTO]]>
+	</queryString>
+	<field name="descricao" class="java.lang.String"/>
+	<field name="observacao" class="java.lang.String"/>
+	<field name="valor_total_hora" class="java.math.BigDecimal"/>
+	<field name="serv_terceiros" class="java.math.BigDecimal"/>
+	<field name="total_pecas" class="java.math.BigDecimal"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="21" splitType="Stretch">
+			<staticText>
+				<reportElement x="4" y="1" width="551" height="20"/>
+				<textElement>
+					<font size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Serviços a serem executados:]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="120" splitType="Stretch">
+			<textField>
+				<reportElement x="-1" y="0" width="555" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+					<paragraph leftIndent="10"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{descricao}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="4" y="20" width="340" height="100"/>
+				<textElement textAlignment="Justified"/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{observacao}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="354" y="20" width="102" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+					<paragraph leftIndent="10"/>
+				</textElement>
+				<text><![CDATA[Mão de Obra:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="354" y="40" width="102" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+					<paragraph leftIndent="10"/>
+				</textElement>
+				<text><![CDATA[Recuperações:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="354" y="60" width="102" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+					<paragraph leftIndent="10"/>
+				</textElement>
+				<text><![CDATA[Total Serviços:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="354" y="80" width="102" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+					<paragraph leftIndent="10"/>
+				</textElement>
+				<text><![CDATA[Peças:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="354" y="100" width="102" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+					<paragraph leftIndent="10"/>
+				</textElement>
+				<text><![CDATA[Total:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" pattern="¤ #,##0.00" isBlankWhenNull="true">
+				<reportElement x="456" y="20" width="100" height="20"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{valor_total_hora}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="¤ #,##0.00" isBlankWhenNull="true">
+				<reportElement x="455" y="80" width="100" height="20"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{total_pecas}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="¤ #,##0.00" isBlankWhenNull="true">
+				<reportElement x="456" y="60" width="100" height="20"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{valor_total_hora}.add($F{serv_terceiros})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="¤ #,##0.00" isBlankWhenNull="true">
+				<reportElement x="456" y="40" width="100" height="20"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{serv_terceiros}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="¤ #,##0.00" isBlankWhenNull="true">
+				<reportElement x="456" y="100" width="100" height="20"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{valor_total_hora}.add($F{serv_terceiros}).add($F{total_pecas})]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

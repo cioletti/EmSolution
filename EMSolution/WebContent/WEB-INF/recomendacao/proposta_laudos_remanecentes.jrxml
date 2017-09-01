@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="proposta_laudos" pageWidth="555" pageHeight="802" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="2.1435888100000016"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="criticidade" markup="html"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["C:\\projetos\\web_pesa\\web\\EM_Solution_Project\\EMSolution\\WebContent\\WEB-INF\\proposta\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ID_CHECHIN" class="java.math.BigDecimal"/>
+	<parameter name="PROCESS_DATE" class="java.lang.String"/>
+	<parameter name="COMP_CODE" class="java.lang.String"/>
+	<parameter name="SERIAL_NUMBER" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select top 4 s.OVERALL_INTERP,s.TEXT_ID, CONVERT(varchar(10),s.interp_date_time, 103) dataInterpretacao,
+CONVERT(varchar(10),s.PROCESS_DATE, 103) dataProcesso, s.meter +'-'+s.METER_UNITS horimetro, s.METER_ON_FLUID +'-'+s.METER_UNITS horimetroOleo,s.FLUID_CHANGED, s.FILTER_CHANGED, FLUID_ADD,s.FLUID_BRAND+''+s.FLUID_WEIGHT fabricante, s.COMP_DESC, s.COMP_CODE , convert(varchar(4000),s.INTERPRETATION_TEXT) INTERPRETATION_TEXT,
+CONVERT(varchar(10),s.PROCESS_DATE,112) PROCESS_DATE   from EMS_SOS s
+where SERIAL_NUMBER = $P{SERIAL_NUMBER}
+and COMP_CODE = $P{COMP_CODE}
+and CONVERT(varchar(10),PROCESS_DATE ,112) <= $P{PROCESS_DATE}
+order by PROCESS_DATE]]>
+	</queryString>
+	<field name="OVERALL_INTERP" class="java.lang.String"/>
+	<field name="TEXT_ID" class="java.lang.String"/>
+	<field name="dataInterpretacao" class="java.lang.String"/>
+	<field name="dataProcesso" class="java.lang.String"/>
+	<field name="horimetro" class="java.lang.String"/>
+	<field name="horimetroOleo" class="java.lang.String"/>
+	<field name="FLUID_CHANGED" class="java.lang.String"/>
+	<field name="FILTER_CHANGED" class="java.lang.String"/>
+	<field name="FLUID_ADD" class="java.lang.String"/>
+	<field name="fabricante" class="java.lang.String"/>
+	<field name="COMP_DESC" class="java.lang.String"/>
+	<field name="COMP_CODE" class="java.lang.String"/>
+	<field name="INTERPRETATION_TEXT" class="java.lang.String"/>
+	<field name="PROCESS_DATE" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="74" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="criticidade" x="0" y="20" width="68" height="20"/>
+				<box>
+					<leftPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[( ($F{OVERALL_INTERP}.equals("AR")) ?  "<font style='background-color: red' size='1'><b>&nbsp;&nbsp;Crítico&nbsp;&nbsp;&nbsp;&nbsp;</b></font>" :(
+ ($F{OVERALL_INTERP}.equals("MC")) ?  "<font style='background-color: #FFFC17' size='1'><b>&nbsp;&nbsp;Monitorar&nbsp;&nbsp;&nbsp;&nbsp;</b></font>" :
+ "<font style='background-color: #00FF00' size='1'><b>&nbsp;&nbsp;&nbsp;&nbsp;Normal&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></font>"))]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="68" y="0" width="60" height="20"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{dataProcesso}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="128" y="0" width="67" height="20"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{dataProcesso}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="195" y="0" width="67" height="20"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{horimetro}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="262" y="0" width="61" height="20"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{horimetroOleo}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="323" y="0" width="62" height="20"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[("Y".equals($F{FILTER_CHANGED}))?"SIM":"NÃO"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="385" y="0" width="62" height="20"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[("Y".equals($F{FLUID_CHANGED}))?"SIM":"NÃO"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="447" y="0" width="54" height="20"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{FLUID_ADD}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="501" y="0" width="54" height="20"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{fabricante}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="68" y="20" width="487" height="20"/>
+				<box>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="15" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Interpretação:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="0" y="40" width="555" height="34"/>
+				<box>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{INTERPRETATION_TEXT}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="0" width="68" height="20"/>
+				<box>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{TEXT_ID}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

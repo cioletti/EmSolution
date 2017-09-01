@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="proposta_elementos_desgaste" pageWidth="802" pageHeight="555" orientation="Landscape" columnWidth="802" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.6105100000000012"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="TEXT_ID" class="java.lang.String"/>
+	<parameter name="COMP_CODE" class="java.lang.String"/>
+	<parameter name="SERIAL_NUMBER" class="java.lang.String"/>
+	<parameter name="PROCESS_DATE" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select TOP 4 TEXT_ID, BP, FP,GL,PH, CON, NO2, ODOR,COLOR,APPEARENCE,FOAM, PPT_AMOUNT from EMS_SOS
+where SERIAL_NUMBER = $P{SERIAL_NUMBER}
+and COMP_CODE = $P{COMP_CODE}
+and CONVERT(varchar(10),PROCESS_DATE ,112) <= $P{PROCESS_DATE}
+order by PROCESS_DATE]]>
+	</queryString>
+	<field name="TEXT_ID" class="java.lang.String"/>
+	<field name="BP" class="java.lang.String"/>
+	<field name="FP" class="java.lang.String"/>
+	<field name="GL" class="java.lang.String"/>
+	<field name="PH" class="java.lang.String"/>
+	<field name="CON" class="java.lang.String"/>
+	<field name="NO2" class="java.lang.String"/>
+	<field name="ODOR" class="java.lang.String"/>
+	<field name="COLOR" class="java.lang.String"/>
+	<field name="APPEARENCE" class="java.lang.String"/>
+	<field name="FOAM" class="java.lang.String"/>
+	<field name="PPT_AMOUNT" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="21" splitType="Stretch">
+			<staticText>
+				<reportElement x="129" y="1" width="30" height="19"/>
+				<box>
+					<topPen lineWidth="1.75"/>
+					<bottomPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[BP]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="0" width="129" height="20" forecolor="#FFFFFF" backcolor="#000000"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Condições do Fluido]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="159" y="1" width="30" height="19"/>
+				<box>
+					<topPen lineWidth="1.75"/>
+					<bottomPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[FP]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="189" y="1" width="30" height="19"/>
+				<box>
+					<topPen lineWidth="1.75"/>
+					<bottomPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[GL]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="219" y="1" width="30" height="19"/>
+				<box>
+					<topPen lineWidth="1.75"/>
+					<bottomPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[pH]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="249" y="1" width="30" height="19"/>
+				<box>
+					<topPen lineWidth="1.75"/>
+					<bottomPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CON]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="279" y="1" width="30" height="19"/>
+				<box>
+					<topPen lineWidth="1.75"/>
+					<bottomPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[NO2]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="309" y="1" width="30" height="19"/>
+				<box>
+					<topPen lineWidth="1.75"/>
+					<bottomPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Odor]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="339" y="1" width="40" height="19"/>
+				<box>
+					<topPen lineWidth="1.75"/>
+					<bottomPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Color]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="379" y="1" width="42" height="19"/>
+				<box>
+					<topPen lineWidth="1.75"/>
+					<bottomPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[App]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="421" y="1" width="38" height="19"/>
+				<box>
+					<topPen lineWidth="1.75"/>
+					<bottomPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Foam]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="459" y="1" width="46" height="19"/>
+				<box>
+					<topPen lineWidth="1.75"/>
+					<bottomPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Pamt]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="505" y="1" width="296" height="19"/>
+				<box>
+					<topPen lineWidth="1.75"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="129" height="20"/>
+				<box>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{TEXT_ID}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="505" y="0" width="296" height="20"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="129" y="0" width="30" height="20"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{BP}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="159" y="0" width="30" height="20"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{FP}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="189" y="0" width="30" height="20"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{GL}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="219" y="0" width="30" height="20"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{PH}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="249" y="0" width="30" height="20"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{CON}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="279" y="0" width="30" height="20"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{NO2}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="309" y="0" width="30" height="20"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ODOR}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="339" y="0" width="40" height="20"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{COLOR}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="379" y="0" width="42" height="20"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{APPEARENCE}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="421" y="0" width="38" height="20"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{FOAM}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="459" y="0" width="46" height="20"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{PPT_AMOUNT}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

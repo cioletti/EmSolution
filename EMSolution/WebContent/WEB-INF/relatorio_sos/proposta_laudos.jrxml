@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="proposta_laudos" pageWidth="802" pageHeight="555" orientation="Landscape" columnWidth="802" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.3310000000000008"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="criticidade" markup="html"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String">
+		<defaultValueExpression><![CDATA["C:\\projetos\\web_pesa\\web\\EM_Solution_Project\\EMSolution\\WebContent\\WEB-INF\\relatorio_sos\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="COMP_CODE" class="java.lang.String"/>
+	<parameter name="SERIAL_NUMBER" class="java.lang.String"/>
+	<parameter name="PROCESS_DATE" class="java.lang.String"/>
+	<parameter name="LIST_SOURCE" class="java.lang.Object"/>
+	<queryString>
+		<![CDATA[select top 1 * from EMS_TIPO_OPORTUNIDADE]]>
+	</queryString>
+	<field name="ID" class="java.math.BigDecimal"/>
+	<field name="DESCRICAO" class="java.lang.String"/>
+	<field name="SIGLA" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="15">
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="0" width="146" height="15" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[No. CONTROLE LABORATÓRIO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="146" y="0" width="81" height="15" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DATA COLETA]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="227" y="0" width="85" height="15" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DATA PROCESSO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="312" y="0" width="75" height="15" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[HRS/KM EQUIP]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="387" y="0" width="75" height="15" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[HRS/KM ÓLEO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="462" y="0" width="80" height="15" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[FILTRO TROCADO?]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="542" y="0" width="84" height="15" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ÓLEO TROCADO?]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="626" y="0" width="98" height="15" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[FLUIDO ADICIONADO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="724" y="0" width="78" height="15" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TIPO DE FLUIDO]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageHeader>
+		<band/>
+	</pageHeader>
+	<detail>
+		<band height="50">
+			<subreport>
+				<reportElement x="0" y="0" width="802" height="50" isRemoveLineWhenBlank="true"/>
+				<dataSourceExpression><![CDATA[$P{LIST_SOURCE}]]></dataSourceExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{SUBREPORT_DIR} + "proposta_laudos_remanecentes.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="50">
+			<subreport>
+				<reportElement x="0" y="0" width="802" height="50"/>
+				<subreportParameter name="COMP_CODE">
+					<subreportParameterExpression><![CDATA[$P{COMP_CODE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SERIAL_NUMBER">
+					<subreportParameterExpression><![CDATA[$P{SERIAL_NUMBER}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="PROCESS_DATE">
+					<subreportParameterExpression><![CDATA[$P{PROCESS_DATE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{SUBREPORT_DIR} + "proposta_elementos_desgaste.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="50">
+			<subreport>
+				<reportElement x="0" y="0" width="802" height="50"/>
+				<subreportParameter name="COMP_CODE">
+					<subreportParameterExpression><![CDATA[$P{COMP_CODE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SERIAL_NUMBER">
+					<subreportParameterExpression><![CDATA[$P{SERIAL_NUMBER}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="PROCESS_DATE">
+					<subreportParameterExpression><![CDATA[$P{PROCESS_DATE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{SUBREPORT_DIR} + "proposta_contagem_particulas.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+</jasperReport>

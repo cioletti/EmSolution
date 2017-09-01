@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="proposta_segmento" pageWidth="515" pageHeight="762" columnWidth="515" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String">
+		<defaultValueExpression><![CDATA["C:\\projetos_pesa\\web\\EMSolution\\WebContent\\WEB-INF\\proposta\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ID_CHECHIN" class="java.math.BigDecimal"/>
+	<parameter name="PORC_SERV_TERC" class="java.lang.String"/>
+	<parameter name="PORC_FRETE" class="java.math.BigDecimal"/>
+	<parameter name="OBS" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select seg1.id,seg1.numero_segmento, seg1.descricao_job_code+' / '+seg1.descricao_comp_code descricao, seg1.qtd_comp, seg1.horas_prevista, 0 as operacao,
+(
+select (((((pre.valor_de_venda * ch.fator_cliente)*
+							(select c.fator from sc_complexidade c
+							where c.id =
+							(select p.id_complexidade from sc_preco p where p.ID_MODELO_FAMILIA = (select mf.ID from SC_MODELO_FAMILIA mf where mf.MODELO = ch.MODELO and mf.ID_FAMILIA = ch.ID_FAMILIA_CAMPO)
+							 and p.id_prefixo = (select pre.id from sc_prefixo pre where pre.descricao = ch.PREFIXO and pre.ID_MODELO_FAMILIA = (select mf.ID from SC_MODELO_FAMILIA mf where mf.MODELO = ch.MODELO and mf.ID_FAMILIA = ch.ID_FAMILIA_CAMPO))
+							 and p.comp_code = seg.com_code
+							 and p.job_code = seg.job_code )
+							) * CASE WHEN ch.fator_urgencia = 'S'
+		         THEN (select fator_urgencia from sc_fator) ELSE 1 END))) * seg.qtd_comp)  * convert(decimal(10,2),seg.horas_prevista)
+
+							from EMS_PROPOSTA ch, ems_segmento seg, SC_PREFIXO pre
+							where ch.id = seg1.ID_PROPOSTA
+							and ch.id = seg.ID_PROPOSTA
+							and pre.descricao = ch.PREFIXO
+              and seg.id = seg1.id
+ and pre.ID_MODELO_FAMILIA= (select mf.ID from SC_MODELO_FAMILIA mf where mf.MODELO = ch.MODELO and mf.ID_FAMILIA = ch.ID_FAMILIA_CAMPO)
+
+) valor_total_hora,
+(
+ select sum(CASE WHEN st.valor is null then 0 else st.valor end)    from ems_segmento seg, ems_segmento_serv_terceiros st
+				  	where seg.id = st.id_ems_segmento
+				  	and seg.id = seg1.id
+) * convert(decimal(10,2),$P{PORC_SERV_TERC}) serv_terceiros, seg1.id as id_segmento
+
+from ems_segmento seg1
+where seg1.ID_PROPOSTA = $P{ID_CHECHIN}
+order by seg1.NUMERO_SEGMENTO]]>
+	</queryString>
+	<field name="id" class="java.math.BigDecimal"/>
+	<field name="numero_segmento" class="java.lang.String"/>
+	<field name="descricao" class="java.lang.String"/>
+	<field name="qtd_comp" class="java.math.BigDecimal"/>
+	<field name="horas_prevista" class="java.lang.String"/>
+	<field name="operacao" class="java.lang.Integer"/>
+	<field name="valor_total_hora" class="java.math.BigDecimal"/>
+	<field name="serv_terceiros" class="java.math.BigDecimal"/>
+	<field name="id_segmento" class="java.math.BigDecimal"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="42">
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="22" width="32" height="20" backcolor="#CCCCCC"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<text><![CDATA[SEG.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="32" y="22" width="264" height="20" backcolor="#CCCCCC"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<text><![CDATA[DESCRIÇÃO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="296" y="22" width="56" height="20" backcolor="#CCCCCC"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<text><![CDATA[QTD. COMP.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="352" y="22" width="61" height="20" backcolor="#CCCCCC"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<text><![CDATA[M. OBRA]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="413" y="22" width="102" height="20" backcolor="#CCCCCC"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<text><![CDATA[SERV.TERCEIROS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="0" width="515" height="22" forecolor="#000000" backcolor="#E8E8E8"/>
+				<box>
+					<topPen lineWidth="1.0" lineColor="#999999"/>
+					<bottomPen lineWidth="1.0" lineColor="#999999"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DESCRIÇÃO DE PEÇAS E SERVIÇO(S)]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="64">
+			<subreport>
+				<reportElement x="0" y="21" width="515" height="43" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[($F{operacao} == Integer.valueOf(0))]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="SUBREPORT_DIR">
+					<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="PORC_FRETE">
+					<subreportParameterExpression><![CDATA[$P{PORC_FRETE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="TOTAL_MAO_DE_OBRA">
+					<subreportParameterExpression><![CDATA[($F{valor_total_hora} == null)? BigDecimal.ZERO:$F{valor_total_hora}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ID_EMS_SEGMENTO">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{SUBREPORT_DIR} + "proposta_pecas.jasper"]]></subreportExpression>
+			</subreport>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="296" y="0" width="56" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{qtd_comp}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="¤ #,##0.00" isBlankWhenNull="true">
+				<reportElement x="352" y="0" width="61" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[($F{valor_total_hora} == null)? BigDecimal.ZERO:$F{valor_total_hora}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="¤ #,##0.00" isBlankWhenNull="true">
+				<reportElement x="413" y="0" width="103" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[($F{serv_terceiros} == null)?BigDecimal.ZERO:$F{serv_terceiros}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="0" width="32" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{numero_segmento}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="32" y="0" width="264" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{descricao}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

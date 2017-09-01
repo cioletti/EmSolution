@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="proposta_segmento_operacao" pageWidth="525" pageHeight="762" columnWidth="505" leftMargin="20" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="ID_OPERACAO" class="java.math.BigDecimal"/>
+	<parameter name="ID_SEGMENTO" class="java.math.BigDecimal"/>
+	<parameter name="TOTAL_MAO_DE_OBRA" class="java.math.BigDecimal"/>
+	<parameter name="PORC_FRETE" class="java.math.BigDecimal"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String">
+		<defaultValueExpression><![CDATA["C:\\SVN_PESA\\web\\GestaoEquipamentosPesa\\WebContent\\WEB-INF\\proposta\\"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select * from (
+select oper.num_operacao, (oper.jbcd +' - '+oper.descricao_jbcd+' / '+oper.cptcd
++' - '+oper.descricao_comp_code) descricao, doc.id id_doc_seg_oper, oper.id from ge_operacao oper, ge_doc_seg_oper doc
+where oper.id_segmento = $P{ID_SEGMENTO}
+and doc.id_segmento = oper.id_segmento
+and doc.id_operacao = oper.id
+and doc.num_doc is not null
+union
+select oper.num_operacao, (oper.jbcd+' - '+oper.descricao_jbcd+' / '+oper.cptcd
++' - '+oper.descricao_comp_code) descricao, null id_doc_seg_oper, null id from ge_operacao oper
+where oper.id_segmento = $P{ID_SEGMENTO}
+and oper.id not in (
+select oper.id from ge_operacao oper, ge_doc_seg_oper doc
+where oper.id_segmento = $P{ID_SEGMENTO}
+and doc.id_segmento = oper.id_segmento
+and doc.id_operacao = oper.id
+and doc.num_doc is not null)) t
+order by 1]]>
+	</queryString>
+	<field name="num_operacao" class="java.lang.String"/>
+	<field name="descricao" class="java.lang.String"/>
+	<field name="id_doc_seg_oper" class="java.math.BigDecimal"/>
+	<field name="id" class="java.math.BigDecimal"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="20">
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="0" width="103" height="20" backcolor="#CCCCCC"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<text><![CDATA[OPERACAO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="103" y="0" width="402" height="20" backcolor="#CCCCCC"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<text><![CDATA[DESCRIÇÃO]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="63" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="103" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{num_operacao}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="103" y="0" width="402" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{descricao}]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement x="0" y="20" width="475" height="43" isRemoveLineWhenBlank="true"/>
+				<subreportParameter name="SUBREPORT_DIR">
+					<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="PORC_FRETE">
+					<subreportParameterExpression><![CDATA[$P{PORC_FRETE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="TOTAL_MAO_DE_OBRA">
+					<subreportParameterExpression><![CDATA[$P{TOTAL_MAO_DE_OBRA}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ID_DOC_SEG_OPER">
+					<subreportParameterExpression><![CDATA[$F{id_doc_seg_oper}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ID_OPERACAO">
+					<subreportParameterExpression><![CDATA[$P{ID_OPERACAO}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{SUBREPORT_DIR} + "proposta_pecas.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+</jasperReport>

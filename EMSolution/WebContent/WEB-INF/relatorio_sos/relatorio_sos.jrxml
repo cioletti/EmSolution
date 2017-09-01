@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="proposta" pageWidth="850" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="810" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isSummaryNewPage="true" isSummaryWithPageHeaderAndFooter="true" isFloatColumnFooter="true">
+	<property name="ireport.zoom" value="1.331000000000012"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Title" forecolor="#FFFFFF" fontName="Times New Roman" fontSize="50" isBold="false" pdfFontName="Times-Bold"/>
+	<style name="SubTitle" forecolor="#CCCCCC" fontName="Times New Roman" fontSize="18" isBold="false" pdfFontName="Times-Roman"/>
+	<style name="Column header" forecolor="#666666" fontName="Times New Roman" fontSize="14" isBold="true" pdfFontName="Times-Roman"/>
+	<style name="Detail" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman"/>
+	<style name="Row" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
+			<style mode="Opaque" backcolor="#F0EFEF"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String">
+		<defaultValueExpression><![CDATA["C:\\projetos\\web_pesa\\web\\EM_Solution_Project\\EMSolution\\WebContent\\WEB-INF\\relatorio_sos\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="logo" class="java.lang.Object"/>
+	<parameter name="SERIAL_NUMBER" class="java.lang.String"/>
+	<parameter name="PROCESS_DATE" class="java.lang.String"/>
+	<parameter name="COMP_CODE" class="java.lang.String"/>
+	<parameter name="MANUFACTURER" class="java.lang.String"/>
+	<parameter name="MODEL" class="java.lang.String"/>
+	<parameter name="COMP_DESC" class="java.lang.String"/>
+	<parameter name="CUSTOMER" class="java.lang.String"/>
+	<parameter name="EQUIP_NUMBER" class="java.lang.String"/>
+	<parameter name="JOBSITE" class="java.lang.String"/>
+	<parameter name="LIST_SOURCE" class="java.lang.Object"/>
+	<queryString>
+		<![CDATA[select top 1 * from EMS_TIPO_OPORTUNIDADE]]>
+	</queryString>
+	<field name="ID" class="java.math.BigDecimal"/>
+	<field name="DESCRICAO" class="java.lang.String"/>
+	<field name="SIGLA" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="63" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="266" y="8" width="85" height="15"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{MANUFACTURER}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="184" y="8" width="80" height="15"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Nome da Empresa:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="184" y="25" width="80" height="15"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Fabricante:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="184" y="41" width="80" height="15"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Modelo:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="266" y="41" width="85" height="15"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{MODEL}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="446" y="9" width="85" height="15"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{COMP_DESC}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="364" y="9" width="80" height="15"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Compartimento:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="366" y="25" width="80" height="15"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Número da frota:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="367" y="41" width="80" height="15"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Número de Série:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="580" y="9" width="80" height="15"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Local da Operação:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="449" y="41" width="100" height="15"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{SERIAL_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="448" y="25" width="100" height="15"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{EQUIP_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="662" y="9" width="100" height="15"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{JOBSITE}]]></textFieldExpression>
+			</textField>
+			<image scaleImage="FillFrame">
+				<reportElement x="0" y="9" width="163" height="47"/>
+				<imageExpression class="java.io.File"><![CDATA[$P{logo}]]></imageExpression>
+			</image>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="266" y="25" width="85" height="15"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{CUSTOMER}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="61" width="810" height="1"/>
+				<graphicElement>
+					<pen lineWidth="3.0"/>
+				</graphicElement>
+			</line>
+		</band>
+	</title>
+	<detail>
+		<band height="50">
+			<subreport>
+				<reportElement x="0" y="0" width="810" height="50"/>
+				<subreportParameter name="COMP_CODE">
+					<subreportParameterExpression><![CDATA[$P{COMP_CODE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREPORT_DIR">
+					<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SERIAL_NUMBER">
+					<subreportParameterExpression><![CDATA[$P{SERIAL_NUMBER}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LIST_SOURCE">
+					<subreportParameterExpression><![CDATA[$P{LIST_SOURCE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="PROCESS_DATE">
+					<subreportParameterExpression><![CDATA[$P{PROCESS_DATE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression class="java.lang.String"><![CDATA[$P{SUBREPORT_DIR} + "proposta_laudos.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="50">
+			<staticText>
+				<reportElement x="0" y="1" width="807" height="49"/>
+				<textElement textAlignment="Justified">
+					<font size="7"/>
+				</textElement>
+				<text><![CDATA[Ag = Prata, Al = Aluminio, B = Boro, Ca = Cálcio, Cr = Cromo, Cu = Cobre, Fe = Ferro, P = Fósforo, K = Potássio, Mg = Magnésio, Mo = Molibidênio, Na = Sódio Ni = Níquel, Pb = Chumbo, Si = Silício, Sn = Estanho Ti = Titânio, Zn = Zinco, A = Anticongelante, F = Combustível, W = Agua, P = Positivo, N = Negativo E = Excessivo, NIT = Nitração, OXI = Oxidação, ST = Fuligem, SUL = Sulfatação, Anl.Visual = Análise Visual,ISO = Código ISO, PQI = Índice de Quantifer de Particular, NaW = Salgue água, FL Pt = Reluza Ponto, TAN = Número de Acidez Total, TBN = Número de Basicidade Total, KF = Karl Fisher, V100 = Viscosidade@100C, Atenção: Esta ferramenta objetiva monitorar e identificar desgastes mecânicos nos equipamentos. Nenhuma garantia contra falhas está implícita ou explícita neste monitoramento]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="0" width="810" height="1"/>
+				<graphicElement>
+					<pen lineWidth="3.0"/>
+				</graphicElement>
+			</line>
+		</band>
+	</pageFooter>
+</jasperReport>

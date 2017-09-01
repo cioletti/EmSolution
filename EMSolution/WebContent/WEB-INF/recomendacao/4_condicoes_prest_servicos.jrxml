@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="4.Condições Prest.Serviços" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.100000000000005"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String">
+		<defaultValueExpression><![CDATA["C:\\SVN_PESA\\web\\GestaoEquipamentosPesa\\WebContent\\WEB-INF\\proposta\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FILIAL" class="java.lang.String"/>
+	<parameter name="EXEC_SERVICO" class="java.lang.String"/>
+	<parameter name="valor_mao_de_obra" class="java.math.BigDecimal"/>
+	<parameter name="total_servico_terceiros" class="java.math.BigDecimal"/>
+	<parameter name="total_pecas" class="java.math.BigDecimal"/>
+	<parameter name="observacao" class="java.lang.String"/>
+	<parameter name="condicaoPagamento" class="java.lang.String"/>
+	<parameter name="prazoEntrega" class="java.math.BigDecimal"/>
+	<parameter name="validadeProposta" class="java.sql.Timestamp"/>
+	<parameter name="USUARIO" class="java.lang.String"/>
+	<parameter name="aprovacaoPropostaServico" class="java.lang.String"/>
+	<parameter name="obsProposta" class="java.lang.String"/>
+	<parameter name="PORC_FRETE" class="java.lang.String"/>
+	<parameter name="ID_CHECHIN" class="java.math.BigDecimal"/>
+	<parameter name="PORC_SERV_TERC" class="java.lang.String"/>
+	<parameter name="OBS" class="java.lang.String"/>
+	<parameter name="IMPRIMIR_PECAS" class="java.lang.String"/>
+	<parameter name="TOTAL_DESLOCAMENTO" class="java.math.BigDecimal"/>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<field name="descricao" class="java.lang.String"/>
+	<field name="observacao" class="java.lang.String"/>
+	<field name="valor_total_hora" class="java.math.BigDecimal"/>
+	<field name="serv_terceiros" class="java.math.BigDecimal"/>
+	<field name="total_pecas" class="java.math.BigDecimal"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="472">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="141" y="370" width="410" height="20"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{USUARIO}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="370" width="139" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Orçamentista:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="348" y="4" width="100" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<text><![CDATA[Observação:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="348" y="24" width="207" height="105"/>
+				<box>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{observacao}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="336" height="304"/>
+				<textElement textAlignment="Justified">
+					<font size="10"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<text><![CDATA[GARANTIA: Sobre os serviço executados oferecemos a nossa costumeira “Garantia de Serviço” representada pela repetição, por nossa conta, em nossas oficinas, dos serviços porventura incorretamente executados, no período de 6 meses após a entrega do objeto consertado, desde que as irregularidades sejam comunicadas imediatamente e devidamente comprovadas. Nenhuma outra qualquer, seja qual for, será estendida e em nenhum caso seremos responsáveis por perdas posteriores, danos indiretos, ou lucros cessantes. Essa garantia é valida quando da aplicação de peças originais. No caso de aplicação de peças genéricas a garantia será de 3 meses.
+PERIÓDO DE NEGOCIAÇÃO: Cláusula I - Caso os serviços elencados nesta proposta de serviço não sejam autorizados pelo cliente, o equipamento/componente do mesmo será retirado do pátio da PESA, mediante o pagamento do custo da desmontagem para a realização do orçamento, do serviço de análise e da elaboração de orçamento, bem como o frete de retorno do equipamento/componente para o cliente; Cláusula II - Caso o equipamento/componente descrito nesta proposta de serviço permaneça nas oficinas da PESA por prazo superior a 90 (noventa) dias, será devido pelo cliente o valor correspondente a desmontagem para a realização do orçamento, o serviço de análise e elaboração de orçamento, bem como o frete, quando houver a necessidade de remessa do equipamento/componente para realização de orçamento/análise em outra unidade da PESA.
+De acordo........................................................    /   /     .
+]]></text>
+			</staticText>
+		</band>
+	</title>
+</jasperReport>
